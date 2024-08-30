@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_courses' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Courses
+        </a>
+    </div>
+    <div class="flex-grow flex flex-col items-center justify-center">
+        <h1 class="text-4xl font-bold mb-8 text-center">Edit Course</h1>
+        <div class="w-full max-w-2xl">
+            <form action="{% url 'edit_course' course.id %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="text" name="title" value="{{ course.title }}" class="w-full p-2 bg-gray-700 rounded">
+                <textarea name="description" class="w-full p-2 bg-gray-700 rounded">{{ course.description }}</textarea>
+                <input type="text" name="icon" value="{{ course.icon }}" class="w-full p-2 bg-gray-700 rounded">
+                <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-80">Update Course</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .tool-container {
+            background: #2a2a2a;
+            box-shadow: 0 0 30px rgba(0, 168, 107, 0.2);
+        }
+        .tool-container:hover {
+            box-shadow: 0 0 40px rgba(0, 168, 107, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="container mx-auto mt-16">
+        <div class="tool-container p-6 rounded-lg">
+            <h1 class="text-4xl font-bold mb-4 text-primary">Nice</h1>
+            <p class="text-gray-300 mb-6">Testw</p>
+            <div class="tool-content">
+                
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.tool-container, .tool-content');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('animate-scale-up');
+                }, index * 50);
+            });
+        });
+    </script>
+</body>
+</html>

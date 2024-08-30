@@ -1,0 +1,215 @@
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Listing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .step-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background-color: #00a86b;
+            box-shadow: 0 0 0 3px rgba(0, 168, 107, 0.3);
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <a href="{% url 'marketplace' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        Back to Marketplace
+    </a>
+
+    <div class="container mx-auto mt-16 max-w-3xl">
+        <h1 class="text-5xl font-bold text-center text-primary mb-12">Create Listing</h1>
+        <div class="bg-gray-800 p-10 rounded-2xl shadow-2xl space-y-8">
+            <div class="flex justify-between items-center mb-8">
+                <div class="step-indicator active" data-step="1">1</div>
+                <div class="h-1 flex-1 bg-gray-600 mx-2">
+                    <div class="h-full bg-primary transition-all duration-300" style="width: 0%" id="progress-bar"></div>
+                </div>
+                <div class="step-indicator" data-step="2">2</div>
+                <div class="h-1 flex-1 bg-gray-600 mx-2"></div>
+                <div class="step-indicator" data-step="3">3</div>
+                <div class="h-1 flex-1 bg-gray-600 mx-2"></div>
+                <div class="step-indicator" data-step="4">4</div>
+            </div>
+            <form method="post" id="listing-form" class="space-y-8">
+                {% csrf_token %}
+                <div class="step-content active" data-step="1">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Title</label>
+                            {% render_field form.title class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" placeholder="Enter title" %}
+                        </div>
+                        <div>
+                            <label for="{{ form.platform.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Platform</label>
+                            {% render_field form.platform class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="step-content" data-step="2">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.followers.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Followers</label>
+                            {% render_field form.followers class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" placeholder="Enter follower count" %}
+                        </div>
+                        <div>
+                            <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
+                            {% render_field form.price class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" placeholder="Enter price" %}
+                        </div>
+                        <div>
+                            <label for="{{ form.niche.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Niche</label>
+                            {% render_field form.niche class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" placeholder="Enter niche" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="step-content" data-step="3">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                            {% render_field form.description class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" rows="4" placeholder="Enter description" %}
+                        </div>
+                        <div class="space-y-4" id="platform-specific-fields">
+                            <label class="flex items-center space-x-3 cursor-pointer tiktok-field">
+                                {% render_field form.tiktok_shop class="form-checkbox h-5 w-5 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2 transition duration-300" %}
+                                <span class="text-sm font-medium text-gray-300">TikTok Shop</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer tiktok-field">
+                                {% render_field form.creative_fund class="form-checkbox h-5 w-5 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2 transition duration-300" %}
+                                <span class="text-sm font-medium text-gray-300">Creative Fund</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer youtube-field">
+                                {% render_field form.youtube_monetization class="form-checkbox h-5 w-5 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2 transition duration-300" %}
+                                <span class="text-sm font-medium text-gray-300">YouTube Monetization</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-content" data-step="4">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Escrow Type</label>
+                            {% for radio in form.escrow_type %}
+                                <label class="inline-flex items-center mt-3">
+                                    {{ radio.tag }}
+                                    <span class="ml-2">{{ radio.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div id="escrow_details_container" style="display: none;">
+                            <label for="{{ form.escrow_details.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Escrow Details</label>
+                            {% render_field form.escrow_details class="bg-gray-700 text-white rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-300" rows="3" placeholder="Enter escrow details" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-8">
+                    <button type="button" id="prev-btn" class="bg-gray-600 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-opacity-80 transition-colors duration-300 shadow-lg" style="display: none;">Previous</button>
+                    <button type="button" id="next-btn" class="bg-primary text-dark px-6 py-3 rounded-full font-semibold text-lg hover:bg-opacity-80 transition-colors duration-300 shadow-lg">Next</button>
+                    <button type="submit" id="submit-btn" class="bg-primary text-dark px-6 py-3 rounded-full font-semibold text-lg hover:bg-opacity-80 transition-colors duration-300 shadow-lg" style="display: none;">Create Listing</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const platformSelect = document.getElementById('{{ form.platform.id_for_label }}');
+        const tiktokFields = document.querySelectorAll('.tiktok-field');
+        const youtubeFields = document.querySelectorAll('.youtube-field');
+        const steps = document.querySelectorAll('.step-content');
+        const indicators = document.querySelectorAll('.step-indicator');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const progressBar = document.getElementById('progress-bar');
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function toggleFields() {
+            const selectedPlatform = platformSelect.value;
+            tiktokFields.forEach(field => field.style.display = selectedPlatform === 'tiktok' ? 'flex' : 'none');
+            youtubeFields.forEach(field => field.style.display = selectedPlatform === 'youtube' ? 'flex' : 'none');
+        }
+
+        function updateStep(step) {
+            steps.forEach(s => s.classList.remove('active'));
+            indicators.forEach(i => i.classList.remove('active'));
+            steps[step - 1].classList.add('active');
+            indicators[step - 1].classList.add('active');
+            progressBar.style.width = `${((step - 1) / (totalSteps - 1)) * 100}%`;
+
+            prevBtn.style.display = step === 1 ? 'none' : 'block';
+            nextBtn.style.display = step === totalSteps ? 'none' : 'block';
+            submitBtn.style.display = step === totalSteps ? 'block' : 'none';
+        }
+
+        function toggleEscrowDetails() {
+            const escrowType = document.querySelector('input[name="escrow_type"]:checked').value;
+            const escrowDetailsContainer = document.getElementById('escrow_details_container');
+            escrowDetailsContainer.style.display = escrowType === 'locked' ? 'block' : 'none';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStep(currentStep);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStep(currentStep);
+            }
+        });
+
+        platformSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Call once to set initial state
+        updateStep(currentStep); // Initialize the form state
+
+        document.querySelectorAll('input[name="escrow_type"]').forEach(radio => {
+            radio.addEventListener('change', toggleEscrowDetails);
+        });
+
+        toggleEscrowDetails();
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'dashboard' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Dashboard
+        </a>
+    </div>
+    <div class="flex-grow flex items-center justify-center">
+        <div class="max-w-4xl w-full">
+            <h1 class="text-4xl font-bold mb-8 text-center">Admin Panel</h1>
+            <div class="grid grid-cols-2 gap-8">
+                <a href="{% url 'admin:index' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-cog text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Django Admin</span>
+                </a>
+                <a href="{% url 'admin_courses' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-graduation-cap text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Manage Courses</span>
+                </a>
+                <a href="{% url 'admin_ann_news' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-bullhorn text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Announcements and Community News</span>
+                </a>
+
+                <a href="{% url 'admin_control_panel' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-users-cog text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">User Control Panel</span>
+                </a>
+                <a href="{% url 'marketplace_admin' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-store text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Marketplace Info</span>
+                </a>
+                <a href="{% url 'admin_media' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-photo-video text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Media Management</span>
+                </a>
+                <a href="{% url 'tool_settings' %}" class="bg-primary text-white p-6 rounded-lg text-center hover:bg-opacity-80 transition-colors duration-300">
+                    <i class="fas fa-tools text-4xl mb-4"></i>
+                    <span class="text-xl font-bold block">Tool Settings</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

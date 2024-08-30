@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ listing.title }} - Listing Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <a href="{% url 'marketplace' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        Back to Marketplace
+    </a>
+
+    <div class="container mx-auto mt-16">
+        <div class="max-w-3xl mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
+            <h1 class="text-4xl font-bold text-primary mb-4">{{ listing.title }}</h1>
+            <div class="flex items-center mb-4">
+                <i class="fab fa-{% if listing.platform == 'youtube' %}youtube text-red-600{% else %}tiktok{% endif %} text-3xl mr-2"></i>
+                <span class="text-xl">{{ listing.platform|title }} Account</span>
+            </div>
+            <p class="text-gray-300 mb-4">{{ listing.description }}</p>
+            <p class="text-gray-300 mb-2"><strong>Niche:</strong> {{ listing.niche }}</p>
+            <p class="text-gray-300 mb-2"><strong>{% if listing.platform == 'youtube' %}Subscribers{% else %}Followers{% endif %}:</strong> {{ listing.followers }}</p>
+            {% if listing.platform == 'youtube' %}
+            <p class="text-gray-300 mb-2"><strong>Monetization:</strong> {% if listing.monetization %}Enabled{% else %}Disabled{% endif %}</p>
+            {% else %}
+            <p class="text-gray-300 mb-2"><strong>TikTok Shop:</strong> {% if listing.tiktok_shop %}Enabled{% else %}Disabled{% endif %}</p>
+            <p class="text-gray-300 mb-2"><strong>Creative Fund:</strong> {% if listing.creative_fund %}Enabled{% else %}Disabled{% endif %}</p>
+            {% endif %}
+            <p class="text-3xl font-bold text-primary mt-4 mb-2">${{ listing.price }}</p>
+            <p class="text-gray-400 mb-4">Listed by: {{ listing.user.username }}</p>
+            <button class="bg-primary text-dark px-6 py-3 rounded-full font-semibold hover:bg-opacity-80 transition-colors duration-300">Contact Seller</button>
+        </div>
+    </div>
+</body>
+</html>

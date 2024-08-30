@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col p-8">
+    <div class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg animate-scale-up">
+        <a href="{% url 'dashboard' %}">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    <div class="flex-grow flex items-center justify-center">
+        <div class="max-w-6xl w-full">
+            <h1 class="text-4xl font-bold mb-8 text-center">Media Management</h1>
+            <form method="post" action="{% url 'admin_media_delete' %}">
+                {% csrf_token %}
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Downloads</h2>
+                    <div class="grid grid-cols-4 gap-4">
+                        {% for file in downloads %}
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <input type="checkbox" name="selected_files" value="{{ file.path }}" class="mr-2">
+                                <span>{{ file.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Lesson Videos</h2>
+                    <div class="grid grid-cols-4 gap-4">
+                        {% for file in lesson_videos %}
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <input type="checkbox" name="selected_files" value="{{ file.path }}" class="mr-2">
+                                <span>{{ file.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Uploads</h2>
+                    <div class="grid grid-cols-4 gap-4">
+                        {% for file in uploads %}
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <input type="checkbox" name="selected_files" value="{{ file.path }}" class="mr-2">
+                                <span>{{ file.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="flex justify-between">
+                    <button type="submit" class="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+                        Delete Selected Files
+                    </button>
+                    <button type="button" id="selectAll" class="bg-primary text-white px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+                        Select All
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('selectAll').addEventListener('click', function() {
+            var checkboxes = document.getElementsByName('selected_files');
+            for (var checkbox of checkboxes) {
+                checkbox.checked = !checkbox.checked;
+            }
+        });
+    </script>
+</body>
+</html>

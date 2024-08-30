@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More Motion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        .join-now-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .join-now-btn::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(90deg, #00a86b, #00ff9d, #00a86b);
+            z-index: -1;
+            filter: blur(5px);
+            background-size: 200% 100%;
+            animation: lightning 1.5s linear infinite;
+        }
+        @keyframes lightning {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .countdown-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00a86b, #00ff9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        .countdown-value::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            animation: shine 3s infinite;
+        }
+        .countdown-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #00a86b;
+        }
+        @keyframes shine {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Loading animation styles */
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 250px;
+            height: 8px;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4rem;
+            position: relative;
+        }
+        .loader::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00a86b, #00ff9d);
+            animation: load 2s ease-in-out forwards;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+        .loader::before {
+            content: '💰';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes load {
+            0% { transform: scaleX(0); }
+            100% { 
+                transform: scaleX(1);
+            }
+        }
+        .loader.loaded::before {
+            opacity: 1;
+        }
+        .loader-text {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #00a86b;
+            margin-bottom: 2rem;
+            position: relative;
+            text-shadow: 0 0 10px rgba(0,168,107,0.5);
+        }
+        .loader-text .letter {
+            display: inline-block;
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px rgba(0,168,107,0.5); }
+            50% { text-shadow: 0 0 20px rgba(0,255,157,0.8); }
+        }
+
+        /* Updated Green wave effect */
+        .wave-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 10000;
+        }
+        .wave {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.3), transparent);
+            transform: skewX(-15deg);
+            transition: left 3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* New section styles */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animation-delay-1000 {
+            animation-delay: 1s;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .voted {
+            transform: scale(1.2);
+            transition: transform 0.3s ease;
+        }
+
+        .review-track {
+            transition: transform 0.5s ease-in-out;
+            width: 300%;
+        }
+
+        .review-card {
+            flex: 0 0 calc(33.333% - 2rem);
+        }
+
+        .stat-card {
+            transition: transform 0.5s ease-out, box-shadow 0.5s ease-out;
+        }
+
+        .animate-stat {
+            animation: countUp 2s ease-out forwards, glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes countUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 168, 107, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 168, 107, 0.8); }
+        }
+
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+
+        .benefit-tile {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .benefit-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 168, 107, 0.1);
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-tile:hover::before {
+            transform: scale(1);
+        }
+
+        .benefit-tile:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        .benefit-description {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #ffffff;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .benefit-tile:hover .benefit-description {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .benefit-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.18, 1.25, 0.4, 1), box-shadow 0.3s ease;
+            position: relative;
+        }
+        .benefit-icon {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .benefit-item:hover {
+            box-shadow: 0 15px 40px rgba(0,168,107,0.2);
+        }
+        .benefit-item:hover .benefit-icon {
+            transform: scale(1.1);
+            color: #00ff9d;
+        }
+        .animated-stroke {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            z-index: 1;
+        }
+        .benefit-item:hover .animated-stroke {
+            animation: stroke-animation 1.5s linear infinite;
+        }
+        @keyframes stroke-animation {
+            0% { border-image: linear-gradient(0deg, #00a86b, #00ff9d) 1; }
+            25% { border-image: linear-gradient(90deg, #00a86b, #00ff9d) 1; }
+            50% { border-image: linear-gradient(180deg, #00a86b, #00ff9d) 1; }
+            75% { border-image: linear-gradient(270deg, #00a86b, #00ff9d) 1; }
+            100% { border-image: linear-gradient(360deg, #00a86b, #00ff9d) 1; }
+        }
+        .bg-glossy-black {
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .benefit-item:hover .glow-effect {
+            opacity: 0;
+        }
+        .glow-effect {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 0.5rem;
+            background: radial-gradient(circle at 50% 50%, rgba(0,168,107,0.4), transparent 70%);
+            opacity: 0.5;
+            filter: blur(8px);
+            animation: pulse 4s ease-in-out infinite;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .feature-item {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: rgba(0, 168, 107, 0.1);
+            border: 1px solid #00a86b;
+            border-radius: 9999px;
+            color: #00a86b;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background-color: #00a86b;
+            color: white;
+        }
+
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .marquee {
+            display: flex;
+            transition: transform 0.1s linear;
+        }
+
+        .marquee-content {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .review-card {
+            flex: 0 0 400px;
+            margin: 0 1rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 168, 107, 0.2);
+        }
+
+        /* Pause animation on hover */
+        .marquee-container:hover .marquee {
+            animation-play-state: paused;
+        }
+
+        .review-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+
+        .bg-glossy-black {
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Day/Night mode styles */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.light-mode {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        body.light-mode .bg-black {
+            background-color: #fff;
+        }
+        body.light-mode .text-white {
+            color: #333;
+        }
+        body.light-mode .bg-gray-800 {
+            background-color: #e0e0e0;
+        }
+        body.light-mode .bg-gray-900 {
+            background-color: #d0d0d0;
+        }
+        body.light-mode .bg-glossy-black {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        body.light-mode .mode-toggle {
+            background-color: rgba(0,0,0,0.1);
+            color: #333;
+        }
+
+        .marquee {
+            overflow-x: hidden;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .marquee-inner {
+            display: inline-flex;
+            gap: 2rem;
+            padding: 1rem 0;
+            will-change: transform;
+            animation: marquee 60s linear infinite;
+        }
+
+        .marquee-reverse .marquee-inner {
+            animation-direction: reverse;
+        }
+
+        .review-card {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #00a86b;
+            transition: all 0.3s ease;
+            width: 300px;
+            height: 310px; /* Adjusted height */
+            flex-shrink: 0;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0,168,107,0.3);
+        }
+
+        .review-card img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 2px solid #00a86b;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-card p.text-primary {
+            color: #00a86b;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-card p.text-gray-300 {
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Green wave effect container -->
+    <div class="wave-container">
+        <div class="wave"></div>
+    </div>
+
+    <!-- Loading animation -->
+    <div class="loader-wrapper" id="loader">
+        <div class="loader-text">
+            <span class="letter">M</span>
+            <span class="letter">o</span>
+            <span class="letter">r</span>
+            <span class="letter">e</span>
+            <span class="letter">M</span>
+            <span class="letter">o</span>
+            <span class="letter">t</span>
+            <span class="letter">i</span>
+            <span class="letter">o</span>
+            <span class="letter">n</span>
+        </div>
+        <div class="loader"></div>
+    </div>
+
+    <div class="content" style="opacity: 0; transition: opacity 2s ease-in-out;">
+        <header class="bg-black bg-opacity-50 py-4">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <span class="text-primary text-4xl font-bold">More Motion</span>
+                <a href="/idle" class="join-now-btn bg-dark text-white px-6 py-3 rounded-full text-xl font-bold hover:bg-opacity-80 transition-colors duration-300">
+                    Join Now
+                </a>
+            </div>
+        </header>
+        
+        <main class="container mx-auto px-4 py-16 text-center">
+            <h1 class="text-5xl font-bold mb-4">Welcome To The Blueprint<br>For Social Media</h1>
+            <p class="text-xl mb-8">
+                <span class="text-primary">Crack the code</span> of social media success. Access<br>
+                our <span class="italic">exclusive software</span> and discover private methods<br>
+                that are <span class="font-bold text-primary">revolutionizing</span> the game in 2024:
+            </p>
+            
+            <div class="max-w-3xl mx-auto bg-gray-800 bg-opacity-50 rounded-lg overflow-hidden">
+                <video controls class="w-full" poster="path_to_video_thumbnail.jpg">
+                    <source src="path_to_your_video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="p-4">
+                    <h2 class="text-3xl font-bold text-white mb-4">UNLOCK THE BLUEPRINT<br>TO SOCIAL MEDIA IN</h2>
+                    <div class="countdown">
+                        <div class="countdown-item">
+                            <span id="hours" class="countdown-value">18</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="minutes" class="countdown-value">00</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="seconds" class="countdown-value">00</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Why People Choose Us Section -->
+    <section class="py-24 relative overflow-hidden bg-grid">
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-6xl font-bold text-center mb-16 text-white">
+                Why People <span class="text-primary">Choose Us</span>
+            </h2>
+            
+            <div class="marquee">
+                <div class="marquee-inner">
+                    <!-- First row of reviews -->
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=1" alt="User">
+                        <h3>@TikTokStar23</h3>
+                        <p class="text-primary">1M+ Followers Gained</p>
+                        <p class="text-gray-300">"Skyrocketed my TikTok growth from 1K to 1M followers<br>in 3 months!"</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=2" alt="User">
+                        <h3>@InstaInfluencer</h3>
+                        <p class="text-primary">$50K/month from sponsorships</p>
+                        <p class="text-gray-300">"Secured major brand deals, now making $50K+<br>monthly from Instagram!"</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=3" alt="User">
+                        <h3>@YouTubePro</h3>
+                        <p class="text-primary">10M views on latest video</p>
+                        <p class="text-gray-300">"Latest video hit 10M views in a week!<br>SEO techniques are game-changers."</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=4" alt="User">
+                        <h3>@TwitterGuru</h3>
+                        <p class="text-primary">Verified in 30 days</p>
+                        <p class="text-gray-300">"Got verified on Twitter in just a month.<br>Community support is incredible!"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="marquee marquee-reverse">
+                <div class="marquee-inner">
+                    <!-- Second row of reviews -->
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=5" alt="User">
+                        <h3>@LinkedInMaster</h3>
+                        <p class="text-primary">500+ connections/week</p>
+                        <p class="text-gray-300">"Adding 500+ quality connections weekly.<br>Engagement tripled!"</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=6" alt="User">
+                        <h3>@PinterestQueen</h3>
+                        <p class="text-primary">1M monthly views</p>
+                        <p class="text-gray-300">"0 to 1M monthly views in 2 months.<br>Strategies work like magic!"</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=7" alt="User">
+                        <h3>@SnapchatInfluencer</h3>
+                        <p class="text-primary">100K opens per snap</p>
+                        <p class="text-gray-300">"Averaging 100K opens per snap!<br>Engagement techniques are gold."</p>
+                    </div>
+                    <div class="review-card">
+                        <img src="https://i.pravatar.cc/150?img=8" alt="User">
+                        <h3>@ClubhouseHost</h3>
+                        <p class="text-primary">5K room in first week</p>
+                        <p class="text-gray-300">"Hit 5K listeners in my first week.<br>Networking opportunities unmatched!"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Section: World's Best Benefits -->
+    <section class="py-24 relative overflow-hidden bg-grid">
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-6xl font-bold text-center mb-16 text-white">
+                World's <span class="text-primary">Best Benefits</span>
+            </h2>
+            
+            <div class="grid grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="benefit-tile col-span-2 row-span-2 bg-glossy-black p-6 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-5xl mb-4">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-primary mb-2">Safe Account Marketplace</h3>
+                    <p class="text-gray-300 hidden benefit-description">Buy and sell accounts securely with our trusted marketplace platform.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Zero Fees</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">No buyer or seller fees on our marketplace.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Expert Courses</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Top-notch courses from industry experts.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Multi-Platform Tools</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Tools for multiple social media platforms.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Private Dev Team</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Access to our private development team.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile col-span-2 row-span-2 bg-glossy-black p-6 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-5xl mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-primary mb-2">Exclusive Community</h3>
+                    <p class="text-gray-300 hidden benefit-description">Join our exclusive forums and community events.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Partnerships</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Find and forge valuable partnerships.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Analytics</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Advanced analytics for your accounts.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">24/7 Support</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Round-the-clock support for all members.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Exclusive Deals</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Access to exclusive promotional deals.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+                <div class="benefit-tile bg-glossy-black p-4 rounded-lg shadow-xl border-2 border-primary transition-all duration-300 hover:scale-105 hover:z-10">
+                    <div class="benefit-icon text-primary text-3xl mb-2">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-primary">Growth Hacks</h3>
+                    <p class="text-sm text-gray-300 hidden benefit-description">Latest growth hacks and strategies.</p>
+                    <div class="animated-stroke"></div>
+                    <div class="glow-effect"></div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <h3 class="text-4xl font-bold text-white mb-8">20+ <span class="text-primary">Private Softwares</span></h3>
+                <div class="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+                    <div class="feature-item">AI Content Generator</div>
+                    <div class="feature-item">Social Media Scheduler</div>
+                    <div class="feature-item">Engagement Booster</div>
+                    <div class="feature-item">Hashtag Analyzer</div>
+                    <div class="feature-item">Competitor Tracker</div>
+                    <div class="feature-item">Influencer Finder</div>
+                    <div class="feature-item">Performance Analytics</div>
+                    <div class="feature-item">Audience Insights</div>
+                    <div class="feature-item">Content Planner</div>
+                    <div class="feature-item">Trend Predictor</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Benefits Section -->
+    <section class="py-24 relative overflow-hidden" style="background-color: #0a0a0a; background-image: linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px); background-size: 50px 50px; background-position: -1px -1px;">
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-6xl font-bold text-center mb-16 text-white">
+                The <span class="text-primary">Only</span> Community That
+                <br class="mb-4">
+                <span class="relative inline-block text-7xl mt-4">
+                    <span class="absolute inset-0 bg-lime-400 opacity-20 animate-highlight"></span>
+                    <span class="relative">Drives Innovation</span>
+                </span>
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                <div class="flex flex-col justify-between h-full space-y-8">
+                    <div class="benefit-item w-full max-w-sm mx-auto bg-glossy-black p-6 rounded-lg shadow-lg relative overflow-hidden">
+                        <div class="benefit-icon text-primary text-5xl mb-4 text-center">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-primary text-center">World Class Private Software</h3>
+                        <div class="animated-stroke"></div>
+                        <div class="glow-effect"></div>
+                    </div>
+                    <div class="benefit-item w-full max-w-sm mx-auto bg-glossy-black p-6 rounded-lg shadow-lg relative overflow-hidden">
+                        <div class="benefit-icon text-primary text-5xl mb-4 text-center">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-primary text-center">Large Private Developer Team</h3>
+                        <div class="animated-stroke"></div>
+                        <div class="glow-effect"></div>
+                    </div>
+                    <div class="benefit-item w-full max-w-sm mx-auto bg-glossy-black p-6 rounded-lg shadow-lg relative overflow-hidden">
+                        <div class="benefit-icon text-primary text-5xl mb-4 text-center">
+                            <i class="fas fa-vote-yea"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-primary text-center">Vote a feature every month</h3>
+                        <div class="animated-stroke"></div>
+                        <div class="glow-effect"></div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-900 p-8 rounded-lg shadow-2xl border border-primary">
+                    <h3 class="text-4xl font-bold text-center text-white mb-8">
+                        Submit new features and vote on features<br>
+                        <span class="text-primary">that get added monthly!</span>
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="bg-gray-800 p-6 rounded-lg transition-all duration-300 hover:bg-gray-700 flex items-center">
+                            <div class="flex flex-col items-center mr-6">
+                                <button class="upvote bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mb-2 focus:outline-none hover:bg-green-600 transition-colors">▲</button>
+                                <span class="vote-count text-xl font-bold">0</span>
+                                <button class="downvote bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mt-2 focus:outline-none hover:bg-red-600 transition-colors">▼</button>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-2xl text-white font-semibold mb-2">TikTok Shop Video Generator</h4>
+                                <p class="text-gray-300">Streamline product video creation for TikTok Shops, boosting sales through automated, high-quality content.</p>
+                                <p class="text-sm text-gray-400 mt-2">Posted by: @TikTokShopGuru</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg transition-all duration-300 hover:bg-gray-700 flex items-center">
+                            <div class="flex flex-col items-center mr-6">
+                                <button class="upvote bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mb-2 focus:outline-none hover:bg-green-600 transition-colors">▲</button>
+                                <span class="vote-count text-xl font-bold">0</span>
+                                <button class="downvote bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mt-2 focus:outline-none hover:bg-red-600 transition-colors">▼</button>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-2xl text-white font-semibold mb-2">TikTok Auto Uploader</h4>
+                                <p class="text-gray-300">Optimize content scheduling and posting, ensuring consistent engagement through automated uploads.</p>
+                                <p class="text-sm text-gray-400 mt-2">Posted by: @ConsistentCreator</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg transition-all duration-300 hover:bg-gray-700 flex items-center">
+                            <div class="flex flex-col items-center mr-6">
+                                <button class="upvote bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mb-2 focus:outline-none hover:bg-green-600 transition-colors">▲</button>
+                                <span class="vote-count text-xl font-bold">0</span>
+                                <button class="downvote bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-3xl mt-2 focus:outline-none hover:bg-red-600 transition-colors">▼</button>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-2xl text-white font-semibold mb-2">TikTok Trend Analyzer</h4>
+                                <p class="text-gray-300">Leverage advanced analytics to identify emerging trends, enabling proactive content creation.</p>
+                                <p class="text-sm text-gray-400 mt-2">Posted by: @TrendyTikToker</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom Section (Updated) -->
+    <section class="py-24 relative overflow-hidden bg-grid">
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-6xl font-bold text-center mb-16 text-white">
+                THE <span class="text-primary">"ALL-IN-ONE"</span> SOCIAL MEDIA SOLUTION
+            </h2>
+            
+            <div class="flex justify-center mb-8">
+                <div class="flex -space-x-4">
+                    <img class="w-12 h-12 rounded-full border-2 border-white" src="https://i.pravatar.cc/150?img=4" alt="User 1">
+                    <img class="w-12 h-12 rounded-full border-2 border-white" src="https://i.pravatar.cc/150?img=5" alt="User 2">
+                    <img class="w-12 h-12 rounded-full border-2 border-white" src="https://i.pravatar.cc/150?img=6" alt="User 3">
+                    <img class="w-12 h-12 rounded-full border-2 border-white" src="https://i.pravatar.cc/150?img=7" alt="User 4">
+                    <img class="w-12 h-12 rounded-full border-2 border-white" src="https://i.pravatar.cc/150?img=8" alt="User 5">
+                </div>
+            </div>
+            
+            <div class="flex justify-center mb-16">
+                <div class="flex items-center">
+                    <i class="fas fa-star text-yellow-400 mr-2"></i>
+                    <i class="fas fa-star text-yellow-400 mr-2"></i>
+                    <i class="fas fa-star text-yellow-400 mr-2"></i>
+                    <i class="fas fa-star text-yellow-400 mr-2"></i>
+                    <i class="fas fa-star text-yellow-400 mr-4"></i>
+                    <span class="text-white text-xl font-semibold">3,700+ successful creators</span>
+                </div>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-gray-900 p-8 rounded-lg shadow-2xl border border-primary">
+                <h3 class="text-4xl font-bold text-center text-white mb-8">
+                    Enter your sign up<br>
+                    <span class="text-primary">info below:</span>
+                </h3>
+                <form class="space-y-6">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-400 mb-1">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required class="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your first name">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email *</label>
+                        <input type="email" id="email" name="email" required class="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your email">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-400 mb-1">Phone *</label>
+                        <div class="flex">
+                            <select class="bg-gray-800 text-white rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option>🇺🇸 +1</option>
+                                <!-- Add more country codes as needed -->
+                            </select>
+                            <input type="tel" id="phone" name="phone" required class="flex-grow px-4 py-2 bg-gray-800 text-white rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your phone number">
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms" name="terms" required class="mr-2 focus:ring-primary">
+                        <label for="terms" class="text-sm text-gray-400">I agree to receive marketing messaging from ourplatform.com at the phone number provided above. I understand I may receive SMS communications after opting in. Data rates may apply, reply STOP to opt out.</label>
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white font-bold py-3 px-4 rounded-md hover:bg-opacity-90 transition duration-300 ease-in-out transform hover:scale-105">
+                        JOIN THE MASTERMIND →
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        @keyframes highlight {
+            0% { width: 0; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0; left: 100%; }
+        }
+        .animate-highlight {
+            animation: highlight 3s ease-in-out infinite;
+        }
+        .benefit-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.18, 1.25, 0.4, 1), box-shadow 0.3s ease;
+            position: relative;
+        }
+        .benefit-icon {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .benefit-item:hover {
+            box-shadow: 0 15px 40px rgba(0,168,107,0.2);
+        }
+        .benefit-item:hover .benefit-icon {
+            transform: scale(1.1);
+            color: #00ff9d;
+        }
+        .animated-stroke {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            z-index: 1;
+        }
+        .benefit-item:hover .animated-stroke {
+            animation: stroke-animation 1.5s linear infinite;
+        }
+        @keyframes stroke-animation {
+            0% { border-image: linear-gradient(0deg, #00a86b, #00ff9d) 1; }
+            25% { border-image: linear-gradient(90deg, #00a86b, #00ff9d) 1; }
+            50% { border-image: linear-gradient(180deg, #00a86b, #00ff9d) 1; }
+            75% { border-image: linear-gradient(270deg, #00a86b, #00ff9d) 1; }
+            100% { border-image: linear-gradient(360deg, #00a86b, #00ff9d) 1; }
+        }
+        .bg-glossy-black {
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .benefit-item:hover .glow-effect {
+            opacity: 0;
+        }
+        .glow-effect {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 0.5rem;
+            background: radial-gradient(circle at 50% 50%, rgba(0,168,107,0.4), transparent 70%);
+            opacity: 0.5;
+            filter: blur(8px);
+            animation: pulse 4s ease-in-out infinite;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .benefit-tile {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .benefit-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 168, 107, 0.1);
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-tile:hover::before {
+            transform: scale(1);
+        }
+
+        .benefit-tile:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        .benefit-description {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #ffffff;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .benefit-tile:hover .benefit-description {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-item {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: rgba(0, 168, 107, 0.1);
+            border: 1px solid #00a86b;
+            border-radius: 9999px;
+            color: #00a86b;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background-color: #00a86b;
+            color: white;
+        }
+
+        .review-card {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #00a86b;
+            transition: all 0.3s ease;
+            width: 300px;
+            height: 310px;
+            flex-shrink: 0;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0,168,107,0.3);
+        }
+
+        .review-card img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 2px solid #00a86b;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-card p.text-primary {
+            color: #00a86b;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-card p.text-gray-300 {
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .marquee {
+            overflow-x: hidden;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .marquee-inner {
+            display: inline-flex;
+            gap: 2rem;
+            padding: 1rem 0;
+            will-change: transform;
+            animation: marquee 60s linear infinite;
+        }
+
+        .marquee-reverse .marquee-inner {
+            animation-direction: reverse;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Day/Night mode styles */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.light-mode {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        body.light-mode .bg-black {
+            background-color: #fff;
+        }
+        body.light-mode .text-white {
+            color: #333;
+        }
+        body.light-mode .bg-gray-800 {
+            background-color: #e0e0e0;
+        }
+        body.light-mode .bg-gray-900 {
+            background-color: #d0d0d0;
+        }
+        body.light-mode .bg-glossy-black {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        body.light-mode .mode-toggle {
+            background-color: rgba(0,0,0,0.1);
+            color: #333;
+        }
+    </style>
+
+    <script>
+        // GSAP animation for the Join Now button (optional additional effect)
+        gsap.to(".join-now-btn", {
+            duration: 0.5,
+            scale: 1.05,
+            repeat: -1,
+            yoyo: true,
+            ease: "power1.inOut"
+        });
+
+        // Countdown Timer
+        function startCountdown() {
+            let hours = 18;
+            let minutes = 0;
+            let seconds = 0;
+
+            function updateCountdown() {
+                if (hours === 0 && minutes === 0 && seconds === 0) {
+                    hours = 18;
+                    minutes = 0;
+                    seconds = 0;
+                } else {
+                    if (seconds > 0) {
+                        seconds--;
+                    } else if (minutes > 0) {
+                        minutes--;
+                        seconds = 59;
+                    } else if (hours > 0) {
+                        hours--;
+                        minutes = 59;
+                        seconds = 59;
+                    }
+                }
+
+                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            }
+
+            setInterval(updateCountdown, 1000);
+        }
+
+        startCountdown();
+
+        // Advanced text animation
+        const textWrapper = document.querySelector('.loader-text');
+        textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+
+        anime.timeline({loop: false})
+        .add({
+            targets: '.loader-text .letter',
+            scale: [0.5, 1],
+            opacity: [0, 1],
+            translateZ: 0,
+            easing: "easeOutExpo",
+            duration: 600,
+            delay: (el, i) => 70 * (i+1)
+        }).add({
+            targets: '.loader-text',
+            opacity: 1,
+            duration: 1000,
+            easing: "easeOutExpo",
+            delay: 1000
+        });
+
+        // Ambient glow effect
+        anime({
+            targets: '.loader-text',
+            textShadow: [
+                {value: '0 0 10px rgba(0,168,107,0.5)'},
+                {value: '0 0 20px rgba(0,255,157,0.8)'},
+                {value: '0 0 10px rgba(0,168,107,0.5)'}
+            ],
+            duration: 4000,
+            easing: 'easeInOutSine',
+            direction: 'alternate',
+            loop: true
+        });
+
+        // Updated Loading animation with slower wave effect and faster fade
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.querySelector('.loader');
+                const wave = document.querySelector('.wave');
+                const content = document.querySelector('.content');
+                const loaderWrapper = document.getElementById('loader');
+
+                loader.addEventListener('animationend', function() {
+                    // Show the money bag emoji
+                    loader.classList.add('loaded');
+
+                    // Start the wave effect
+                    wave.style.left = '100%';
+                    
+                    // Fade out loader and show content simultaneously with the wave
+                    setTimeout(() => {
+                        loaderWrapper.style.opacity = '0';
+                        loaderWrapper.style.transition = 'opacity 1.5s ease-out';
+                        content.style.opacity = '1';
+                        content.style.transition = 'opacity 1.5s ease-in';
+                    }, 500); // Delay slightly to show the money bag
+
+                    // Remove loader after transition
+                    setTimeout(() => {
+                        loaderWrapper.style.display = 'none';
+                    }, 2000);
+                });
+            }, 100);
+        });
+
+        // Enhanced scroll animation for benefit items with bounce effect
+        const benefitItems = document.querySelectorAll('.benefit-item');
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const item = entry.target;
+                    gsap.to(item, {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.8,
+                        ease: "bounce.out",
+                        onComplete: () => {
+                            gsap.to(item.querySelector('.benefit-icon'), {
+                                scale: 1.1,
+                                duration: 0.3,
+                                yoyo: true,
+                                repeat: 1,
+                                ease: "power2.inOut"
+                            });
+                        }
+                    });
+                    observer.unobserve(item);
+                }
+            });
+        }, observerOptions);
+
+        benefitItems.forEach(item => {
+            gsap.set(item, { y: 20, opacity: 0 });
+            observer.observe(item);
+        });
+
+        // Enhanced voting functionality with advanced animations
+        document.querySelectorAll('.upvote, .downvote').forEach(button => {
+            button.addEventListener('click', function() {
+                const voteCountElement = this.parentElement.querySelector('.vote-count');
+                let count = parseInt(voteCountElement.textContent);
+                const container = this.closest('.bg-gray-800');
+                
+                if (this.classList.contains('upvote')) {
+                    count++;
+                    animateVote(container, '#4ade80');
+                } else {
+                    count--;
+                    animateVote(container, '#ef4444');
+                }
+                
+                voteCountElement.textContent = count;
+                
+                // Enhanced animation
+                this.classList.add('voted');
+                container.classList.add('scale-105', 'shadow-lg');
+                setTimeout(() => {
+                    this.classList.remove('voted');
+                    container.classList.remove('scale-105', 'shadow-lg');
+                }, 300);
+
+                // Particle effect
+                createParticles(this);
+            });
+        });
+
+        function animateVote(element, color) {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.right = '0';
+            overlay.style.bottom = '0';
+            overlay.style.backgroundColor = color;
+            overlay.style.borderRadius = '0.5rem';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease-in-out';
+
+            element.style.position = 'relative';
+            element.appendChild(overlay);
+
+            gsap.to(overlay, {
+                opacity: 0.3,
+                duration: 0.2,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    gsap.to(overlay, {
+                        opacity: 0,
+                        duration: 0.5,
+                        ease: "power2.inOut",
+                        onComplete: () => element.removeChild(overlay)
+                    });
+                }
+            });
+        }
+
+        function createParticles(button) {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.style.position = 'absolute';
+            particlesContainer.style.top = '50%';
+            particlesContainer.style.left = '50%';
+            particlesContainer.style.pointerEvents = 'none';
+            button.appendChild(particlesContainer);
+
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = '10px';
+                particle.style.height = '10px';
+                particle.style.backgroundColor = button.classList.contains('upvote') ? '#4ade80' : '#ef4444';
+                particle.style.borderRadius = '50%';
+                particle.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+                particlesContainer.appendChild(particle);
+
+                gsap.fromTo(particle, 
+                    {
+                        x: 0,
+                        y: 0,
+                        scale: 1,
+                        opacity: 1
+                    },
+                    {
+                        x: gsap.utils.random(-70, 70),
+                        y: gsap.utils.random(-70, 70),
+                        scale: 0,
+                        opacity: 0,
+                        duration: 1,
+                        ease: "power2.out",
+                        onComplete: () => particlesContainer.removeChild(particle)
+                    }
+                );
+            }
+
+            setTimeout(() => button.removeChild(particlesContainer), 1000);
+        }
+
+        // Add this to your existing styles
+        const newStyles = `
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-20px); }
+                100% { transform: translateY(0px); }
+            }
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+            .animation-delay-1000 {
+                animation-delay: 1s;
+            }
+            .animation-delay-2000 {
+                animation-delay: 2s;
+            }
+            .voted {
+                transform: scale(1.2);
+                transition: transform 0.3s ease;
+            }
+            .upvote, .downvote {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .upvote:hover, .downvote:hover {
+                transform: scale(1.1);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            }
+        `;
+        
+        const styleElement = document.createElement('style');
+        styleElement.textContent = newStyles;
+        document.head.appendChild(styleElement);
+
+        // Review Carousel
+        const reviewTrack = document.querySelector('.review-track');
+        const reviews = document.querySelectorAll('.review-card');
+        const prevButton = document.getElementById('prevReview');
+        const nextButton = document.getElementById('nextReview');
+        let currentIndex = 0;
+
+        function updateCarousel() {
+            reviewTrack.style.transform = `translateX(-${currentIndex * (100 / reviews.length)}%)`;
+        }
+
+        prevButton.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + reviews.length) % reviews.length;
+            updateCarousel();
+        });
+
+        nextButton.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % reviews.length;
+            updateCarousel();
+        });
+
+        // Auto-scroll the carousel
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % reviews.length;
+            updateCarousel();
+        }, 5000);
+
+        // Animate stat cards on scroll
+        const statCards = document.querySelectorAll('.stat-card');
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-stat');
+                    statObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        statCards.forEach(card => statObserver.observe(card));
+
+        // Benefit tiles hover effect
+        const benefitTiles = document.querySelectorAll('.benefit-tile');
+        benefitTiles.forEach(tile => {
+            tile.addEventListener('mouseenter', () => {
+                tile.querySelector('.benefit-description').style.display = 'block';
+            });
+            tile.addEventListener('mouseleave', () => {
+                tile.querySelector('.benefit-description').style.display = 'none';
+            });
+        });
+
+        // Animate feature items
+        const featureItems = document.querySelectorAll('.feature-item');
+        featureItems.forEach((item, index) => {
+            gsap.set(item, { 
+                opacity: 0, 
+                scale: 0.8, 
+                y: 20
+            });
+            gsap.to(item, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.5,
+                delay: 0.1 * index,
+                ease: "back.out(1.7)",
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom-=100",
+                    toggleActions: "play none none reverse"
+                }
+            });
+        });
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    scrollPosition: 0,
+                    reviews: [
+                        {
+                            id: 1,
+                            name: "@TikTokStar23",
+                            avatar: "https://i.pravatar.cc/150?img=1",
+                            achievement: "1M+ Followers Gained",
+                            comment: "Skyrocketed my TikTok growth from 1K to 1M followers in 3 months!"
+                        },
+                        {
+                            id: 2,
+                            name: "@InstaInfluencer",
+                            avatar: "https://i.pravatar.cc/150?img=2",
+                            achievement: "$50K/month from sponsorships",
+                            comment: "Secured major brand deals, now making $50K+ monthly from Instagram!"
+                        },
+                        {
+                            id: 3,
+                            name: "@YouTubePro",
+                            avatar: "https://i.pravatar.cc/150?img=3",
+                            achievement: "10M views on latest video",
+                            comment: "Latest video hit 10M views in a week! SEO techniques are game-changers."
+                        },
+                        {
+                            id: 4,
+                            name: "@TwitterGuru",
+                            avatar: "https://i.pravatar.cc/150?img=4",
+                            achievement: "Verified in 30 days",
+                            comment: "Got verified on Twitter in just a month. Community support is incredible!"
+                        },
+                        {
+                            id: 5,
+                            name: "@LinkedInMaster",
+                            avatar: "https://i.pravatar.cc/150?img=5",
+                            achievement: "500+ connections/week",
+                            comment: "Adding 500+ quality connections weekly. Engagement tripled!"
+                        },
+                        {
+                            id: 6,
+                            name: "@PinterestQueen",
+                            avatar: "https://i.pravatar.cc/150?img=6",
+                            achievement: "1M monthly views",
+                            comment: "0 to 1M monthly views in 2 months. Strategies work like magic!"
+                        },
+                        {
+                            id: 7,
+                            name: "@SnapchatInfluencer",
+                            avatar: "https://i.pravatar.cc/150?img=7",
+                            achievement: "100K opens per snap",
+                            comment: "Averaging 100K opens per snap! Engagement techniques are gold."
+                        },
+                        {
+                            id: 8,
+                            name: "@ClubhouseHost",
+                            avatar: "https://i.pravatar.cc/150?img=8",
+                            achievement: "5K room in first week",
+                            comment: "Hit 5K listeners in my first week. Networking opportunities unmatched!"
+                        }
+                    ]
+                }
+            }
+        }).mount('#reviews-app');
+
+        // Day/Night mode toggle
+        const modeToggle = document.getElementById('modeToggle');
+        const body = document.body;
+        const icon = modeToggle.querySelector('i');
+
+        modeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('light-mode')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const marquees = document.querySelectorAll(".marquee-inner");
+            
+            marquees.forEach(marquee => {
+                const content = marquee.innerHTML;
+                marquee.innerHTML += content;
+
+                let isHovered = false;
+
+                marquee.addEventListener("mouseover", () => {
+                    isHovered = true;
+                    marquee.style.animationPlayState = 'paused';
+                });
+
+                marquee.addEventListener("mouseout", () => {
+                    isHovered = false;
+                    marquee.style.animationPlayState = 'running';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+</html>

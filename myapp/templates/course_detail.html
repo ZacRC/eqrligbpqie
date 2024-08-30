@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} - Course Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 168, 107, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(0, 168, 107, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            background-position: 0 0, -1px -1px, -1px -1px;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-gap: 20px;
+            flex-grow: 1;
+        }
+        .course-header, .sidebar, .content-area {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 168, 107, 0.1);
+            border: 1px solid rgba(0, 168, 107, 0.2);
+            transition: all 0.3s ease;
+        }
+        .course-header {
+            padding: 15px 30px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+        }
+        .content-area {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+        .lesson-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+        }
+        .lesson-item:hover {
+            background-color: rgba(0, 168, 107, 0.1);
+            transform: translateX(3px);
+        }
+        .lesson-item.active {
+            background-color: rgba(0, 168, 107, 0.2);
+            font-weight: bold;
+        }
+        .lesson-item.completed {
+            color: #00ff9d;
+        }
+        .lesson-item.locked {
+            color: #999;
+            cursor: not-allowed;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-container iframe, .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .confetti {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background-color: #f0f;
+            animation: confetti-fall 4s ease-out infinite;
+            z-index: 1000;
+            opacity: 0;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-5vh) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) translateX(100px) rotate(720deg); opacity: 0; }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            background-color: #2a2a2a;
+            margin: 15% auto;
+            padding: 2rem;
+            border: 2px solid #00a86b;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 168, 107, 0.1);
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .modal.show {
+            opacity: 1;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .btn {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 168, 107, 0.8);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 168, 107, 0.2);
+            background: rgba(0, 168, 107, 1);
+        }
+        .lesson-group {
+            border-bottom: 1px solid rgba(0, 168, 107, 0.2);
+            margin-bottom: 0.5rem;
+        }
+        .lesson-header {
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(0, 168, 107, 0.1);
+        }
+        .lesson-header:hover {
+            background: rgba(0, 168, 107, 0.15);
+        }
+        .lesson-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .lesson-content.open {
+            max-height: 1000px; /* Adjust this value based on your content */
+        }
+        .lesson-toggle {
+            transition: transform 0.2s ease;
+        }
+        .lesson-toggle.open {
+            transform: rotate(180deg);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 168, 107, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 168, 107, 0.7);
+        }
+        /* Progress bar */
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(to right, #00a86b, #00ff9d);
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        /* Custom Video Player Styles */
+        .custom-video-player {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .custom-video-player video {
+            width: 100%;
+            display: block;
+        }
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            transition: opacity 0.3s;
+        }
+        .custom-video-player:hover .video-controls {
+            opacity: 1;
+        }
+        .video-controls button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: color 0.3s;
+        }
+        .video-controls button:hover {
+            color: #00a86b;
+        }
+        .progress-bar {
+            flex-grow: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        .progress {
+            height: 100%;
+            background: #00a86b;
+            width: 0;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+        .time {
+            color: #fff;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .volume {
+            width: 80px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <h1 class="text-2xl font-bold text-primary">{{ course.title }}</h1>
+        <h2 id="current-lesson-title" class="text-xl font-semibold text-center flex-grow text-white"></h2>
+        <div id="navigation-buttons" class="flex space-x-2 hidden">
+            <button id="prev-lesson" class="btn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button id="next-lesson" class="btn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </header>
+    <div class="main-container">
+        <aside class="sidebar">
+            <h2 class="text-xl font-semibold mb-4 text-primary">Course Content</h2>
+            {% for lesson in course.lessons.all %}
+                <div class="lesson-group">
+                    <div class="lesson-header" data-lesson="{{ lesson.id }}">
+                        <h3 class="font-semibold text-lg text-white">{{ lesson.title }}</h3>
+                        <i class="fas fa-chevron-down text-primary lesson-toggle"></i>
+                    </div>
+                    <div class="lesson-content">
+                        {% for mini_lesson in lesson.mini_lessons.all %}
+                            <div class="lesson-item p-2 rounded mb-1 flex items-center" data-lesson="{{ lesson.id }}" data-mini-lesson="{{ mini_lesson.id }}">
+                                <span class="mr-2 lesson-status"><i class="fas fa-circle text-xs"></i></span>
+                                <span class="flex-grow">{{ mini_lesson.title }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </aside>
+        <main class="content-area">
+            <div id="start-course-container" class="flex flex-col items-center justify-center h-full">
+                <i class="fas {{ course.icon }} text-6xl text-primary mb-4"></i>
+                <h2 class="text-3xl font-bold mb-4 text-white">{{ course.title }}</h2>
+                <p class="text-xl mb-8 max-w-lg text-center text-gray-300">{{ course.description }}</p>
+                <button id="start-course" class="btn">
+                    Start Course
+                </button>
+            </div>
+            <div id="lesson-content" class="hidden flex-grow">
+                <div class="video-container mb-4">
+                    <div id="lesson-video">
+                        <iframe id="lesson-video-frame" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="hidden"></iframe>
+                        <div class="custom-video-player hidden">
+                            <video id="lesson-video-player">
+                                <source src="" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="video-controls">
+                                <button class="play-pause"><i class="fas fa-play"></i></button>
+                                <div class="progress-bar">
+                                    <div class="progress"></div>
+                                </div>
+                                <div class="time">
+                                    <span class="current">0:00</span> / <span class="duration">0:00</span>
+                                </div>
+                                <button class="mute"><i class="fas fa-volume-up"></i></button>
+                                <input type="range" class="volume" min="0" max="1" step="0.1" value="1">
+                                <button class="fullscreen"><i class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2 id="lesson-title" class="text-2xl font-bold mb-4 text-primary"></h2>
+                <div id="lesson-description" class="prose max-w-none mb-8 text-gray-300"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="completion-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4 text-center text-primary">🎉 Congratulations! 🎉</h2>
+            <p class="text-xl mb-4 text-center text-white"><span class="font-bold">{{ course.title }}</span></p>
+            <p class="text-lg mb-6 text-center text-secondary">100% Completed!</p>
+            <p class="mb-6 text-center text-gray-300">Would you like to stay on this course or go back to the dashboard?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="stay-button" class="btn bg-gray-700 text-white">
+                    Stay on Course
+                </button>
+                <button id="dashboard-button" class="btn">
+                    Go to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startCourseContainer = document.getElementById('start-course-container');
+            const lessonItems = document.querySelectorAll('.lesson-item');
+            const lessonContent = document.getElementById('lesson-content');
+            const lessonVideo = document.getElementById('lesson-video');
+            const lessonVideoFrame = document.getElementById('lesson-video-frame');
+            const customVideoPlayer = lessonVideo.querySelector('.custom-video-player');
+            const videoPlayer = document.getElementById('lesson-video-player');
+            const lessonTitle = document.getElementById('lesson-title');
+            const lessonDescription = document.getElementById('lesson-description');
+            const currentLessonTitle = document.getElementById('current-lesson-title');
+            const startCourseBtn = document.getElementById('start-course');
+            const prevLessonBtn = document.getElementById('prev-lesson');
+            const nextLessonBtn = document.getElementById('next-lesson');
+            const navigationButtons = document.getElementById('navigation-buttons');
+    
+            let currentLessonIndex = 0;
+            let maxCompletedIndex = 0;
+    
+            function showLesson(index) {
+                if (index < 0 || index >= lessonItems.length) return;
+
+                const item = lessonItems[index];
+                const lessonId = item.dataset.lesson;
+                const miniLessonId = item.dataset.miniLesson;
+    
+                fetch(`/api/lesson/${lessonId}/mini-lesson/${miniLessonId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.video_url) {
+                            lessonVideoFrame.classList.remove('hidden');
+                            customVideoPlayer.classList.add('hidden');
+                            lessonVideoFrame.src = data.video_url;
+                        } else if (data.video_file) {
+                            lessonVideoFrame.classList.add('hidden');
+                            customVideoPlayer.classList.remove('hidden');
+                            videoPlayer.querySelector('source').src = data.video_file;
+                            videoPlayer.load();
+                            setupVideoPlayer(customVideoPlayer);
+                        } else {
+                            lessonVideoFrame.classList.add('hidden');
+                            customVideoPlayer.classList.add('hidden');
+                            lessonVideo.innerHTML = '<p>No video available for this lesson.</p>';
+                        }
+
+                        lessonTitle.textContent = data.title;
+                        lessonDescription.innerHTML = data.description;
+                        currentLessonTitle.textContent = data.title;
+                        lessonContent.classList.remove('hidden');
+                    });
+    
+                lessonItems.forEach((item, i) => {
+                    item.classList.remove('active');
+                    if (i <= maxCompletedIndex) {
+                        item.classList.add('completed');
+                        item.classList.remove('locked');
+                        item.querySelector('.lesson-status i').className = 'fas fa-check-circle text-primary';
+                    } else if (i <= maxCompletedIndex + 1) {
+                        item.classList.remove('locked');
+                        item.querySelector('.lesson-status i').className = 'fas fa-circle text-gray-300';
+                    } else {
+                        item.classList.add('locked');
+                        item.querySelector('.lesson-status i').className = 'fas fa-lock text-gray-300';
+                    }
+                });
+    
+                item.classList.add('active');
+                currentLessonIndex = index;
+                maxCompletedIndex = Math.max(maxCompletedIndex, currentLessonIndex);
+    
+                prevLessonBtn.disabled = currentLessonIndex === 0;
+                nextLessonBtn.disabled = false;  // Always enable the next/finish button
+    
+                if (index === lessonItems.length - 1) {
+                    nextLessonBtn.textContent = 'Finish';
+                    nextLessonBtn.classList.remove('bg-primary');
+                    nextLessonBtn.classList.add('bg-green-500');
+                } else {
+                    nextLessonBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    nextLessonBtn.classList.add('bg-primary');
+                    nextLessonBtn.classList.remove('bg-green-500');
+                }
+    
+                // Open the corresponding lesson group
+                const lessonGroup = document.querySelector(`.lesson-header[data-lesson="${lessonId}"]`);
+                if (lessonGroup) {
+                    const content = lessonGroup.nextElementSibling;
+                    const toggle = lessonGroup.querySelector('.lesson-toggle');
+                    content.classList.add('open');
+                    toggle.classList.add('open');
+                }
+
+                updateProgress();
+                if (index > 0) {
+                    const prevLessonStatus = lessonItems[index - 1].querySelector('.lesson-status');
+                    animateCheckmark(prevLessonStatus);
+                }
+            }
+    
+            function createConfetti() {
+                const confettiCount = 150;
+                const emojis = ['🎉', '🎊', '🥳', '🎈', '🎇', '🎆', '👏', '🙌'];
+                const confettiContainer = document.createElement('div');
+                confettiContainer.id = 'confetti-container';
+                confettiContainer.style.position = 'fixed';
+                confettiContainer.style.top = '0';
+                confettiContainer.style.left = '0';
+                confettiContainer.style.width = '100%';
+                confettiContainer.style.height = '100%';
+                confettiContainer.style.pointerEvents = 'none';
+                confettiContainer.style.zIndex = '1000';
+                document.body.appendChild(confettiContainer);
+    
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDelay = Math.random() * 4 + 's';
+                    confetti.style.fontSize = Math.random() * 10 + 20 + 'px';
+                    confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+                    confettiContainer.appendChild(confetti);
+                }
+            }
+    
+            function removeConfetti() {
+                const confettiContainer = document.getElementById('confetti-container');
+                if (confettiContainer) {
+                    confettiContainer.style.transition = 'opacity 1s ease-out';
+                    confettiContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        confettiContainer.remove();
+                    }, 1000);
+                }
+            }
+    
+            function showCompletionModal() {
+                completionModal.style.display = 'block';
+                setTimeout(() => {
+                    completionModal.classList.add('show');
+                }, 10);
+            }
+    
+            function hideCompletionModal() {
+                completionModal.classList.remove('show');
+                setTimeout(() => {
+                    completionModal.style.display = 'none';
+                }, 300);
+            }
+    
+            const completionModal = document.getElementById('completion-modal');
+            const stayButton = document.getElementById('stay-button');
+            const dashboardButton = document.getElementById('dashboard-button');
+    
+            nextLessonBtn.addEventListener('click', function() {
+                if (currentLessonIndex === lessonItems.length - 1) {
+                    createConfetti();
+                    showCompletionModal();
+                } else {
+                    showLesson(currentLessonIndex + 1);
+                }
+            });
+    
+            stayButton.addEventListener('click', function() {
+                hideCompletionModal();
+                removeConfetti();
+            });
+    
+            dashboardButton.addEventListener('click', function() {
+                window.location.href = '/dashboard/';  // Adjust this URL as needed
+            });
+    
+            startCourseBtn.addEventListener('click', function() {
+                startCourseContainer.classList.add('hidden');
+                lessonContent.classList.remove('hidden');
+                navigationButtons.classList.remove('hidden');
+                showLesson(0);
+            });
+    
+            prevLessonBtn.addEventListener('click', function() {
+                showLesson(currentLessonIndex - 1);
+            });
+    
+            // Add this new code for collapsible lessons
+            const lessonHeaders = document.querySelectorAll('.lesson-header');
+            lessonHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const toggle = this.querySelector('.lesson-toggle');
+                    content.classList.toggle('open');
+                    toggle.classList.toggle('open');
+                    
+                    gsap.to(content, {
+                        maxHeight: content.classList.contains('open') ? content.scrollHeight : 0,
+                        duration: 0.3,
+                        ease: "power2.inOut"
+                    });
+                });
+            });
+
+            // Progress bar
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            document.body.appendChild(progressBar);
+
+            function updateProgress() {
+                const progress = (currentLessonIndex + 1) / lessonItems.length * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+
+            // Animate checkmarks for completed lessons
+            function animateCheckmark(element) {
+                element.innerHTML = '<i class="fas fa-check-circle text-primary"></i>';
+                gsap.from(element.firstChild, {scale: 0, rotation: -360, duration: 0.5, ease: "back.out(1.7)"});
+            }
+
+            // Custom Video Player Controls
+            function setupVideoPlayer(player) {
+                const video = player.querySelector('video');
+                const playPauseBtn = player.querySelector('.play-pause');
+                const progressBar = player.querySelector('.progress-bar');
+                const progress = player.querySelector('.progress');
+                const currentTime = player.querySelector('.current');
+                const duration = player.querySelector('.duration');
+                const muteBtn = player.querySelector('.mute');
+                const volumeSlider = player.querySelector('.volume');
+                const fullscreenBtn = player.querySelector('.fullscreen');
+
+                playPauseBtn.addEventListener('click', togglePlay);
+                video.addEventListener('click', togglePlay);
+                video.addEventListener('timeupdate', updateProgress);
+                video.addEventListener('loadedmetadata', setDuration);
+                progressBar.addEventListener('click', seek);
+                muteBtn.addEventListener('click', toggleMute);
+                volumeSlider.addEventListener('input', setVolume);
+                fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+                function togglePlay() {
+                    if (video.paused) {
+                        video.play();
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    } else {
+                        video.pause();
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    }
+                }
+
+                function updateProgress() {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    progress.style.width = `${percent}%`;
+                    currentTime.textContent = formatTime(video.currentTime);
+                }
+
+                function setDuration() {
+                    duration.textContent = formatTime(video.duration);
+                }
+
+                function formatTime(time) {
+                    const minutes = Math.floor(time / 60);
+                    const seconds = Math.floor(time % 60);
+                    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                }
+
+                function seek(e) {
+                    const percent = e.offsetX / progressBar.offsetWidth;
+                    video.currentTime = percent * video.duration;
+                }
+
+                function toggleMute() {
+                    video.muted = !video.muted;
+                    muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                }
+
+                function setVolume() {
+                    video.volume = volumeSlider.value;
+                    muteBtn.innerHTML = video.volume === 0 ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                }
+
+                function toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        player.requestFullscreen();
+                    } else {
+                        document.exitFullscreen();
+                    }
+                }
+            }
+
+            // Setup video players when the page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                const lessonVideoPlayer = document.querySelector('#lesson-video .custom-video-player');
+                if (lessonVideoPlayer) setupVideoPlayer(lessonVideoPlayer);
+            });
+        });
+    </script>
+</body>
+</html>

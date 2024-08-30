@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Lesson - {{ lesson.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen p-8 flex flex-col items-center">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'manage_lessons' lesson.course.id %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Lessons
+        </a>
+    </div>
+    <h1 class="text-4xl font-bold mb-8 text-center text-primary">Edit Lesson</h1>
+    <div class="w-full max-w-4xl">
+        <form action="{% url 'edit_lesson' lesson.course.id lesson.id %}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="title" value="{{ lesson.title }}" class="w-full p-2 bg-gray-700 rounded text-3xl font-bold mb-4 text-primary">
+            <input type="number" name="order" value="{{ lesson.order }}" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Lesson Order">
+            <div class="lesson-divider"></div>
+            <div id="mini-lessons">
+                {% for mini_lesson in lesson.mini_lessons.all %}
+                <div class="mini-lesson mb-4 p-4 bg-gray-800 rounded-lg">
+                    <input type="hidden" name="mini_lesson_ids[]" value="{{ mini_lesson.id }}">
+                    <input type="url" name="video_urls[]" value="{{ mini_lesson.video_url }}" class="w-full p-2 bg-gray-700 rounded mb-2" placeholder="YouTube Video URL">
+                    <input type="file" name="video_files[]" accept="video/*" class="w-full p-2 bg-gray-700 rounded mb-2">
+                    {% if mini_lesson.video_file %}
+                        <p class="text-sm text-gray-400 mb-2">Current video: {{ mini_lesson.video_file.name }}</p>
+                        <video src="{{ mini_lesson.video_file.url }}" controls class="w-full mb-2"></video>
+                    {% endif %}
+                    <input type="text" name="mini_titles[]" value="{{ mini_lesson.title }}" class="w-full p-2 bg-gray-700 rounded mb-2" placeholder="Mini Lesson Title">
+                    <textarea name="descriptions[]" class="w-full p-2 bg-gray-700 rounded mb-2" placeholder="Mini Lesson Description">{{ mini_lesson.description }}</textarea>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-mini-lesson" class="bg-secondary text-dark px-4 py-2 rounded hover:bg-opacity-80 mb-4">Add Mini Lesson</button>
+            <button type="submit" class="bg-primary text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-opacity-80 transition-colors duration-300">Update Lesson</button>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('add-mini-lesson').addEventListener('click', function() {
+            const miniLessons = document.getElementById('mini-lessons');
+            const newMiniLesson = document.createElement('div');
+            newMiniLesson.className = 'mini-lesson mb-4 p-4 bg-gray-800 rounded-lg';
+            newMiniLesson.innerHTML = `
+                <input type="url" name="video_urls[]" placeholder="YouTube Video URL" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <input type="file" name="video_files[]" accept="video/*" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <input type="text" name="mini_titles[]" placeholder="Mini Lesson Title" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <textarea name="descriptions[]" placeholder="Mini Lesson Description" class="w-full p-2 bg-gray-700 rounded mb-2"></textarea>
+            `;
+            miniLessons.appendChild(newMiniLesson);
+        });
+    </script>
+</body>
+</html>

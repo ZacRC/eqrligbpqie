@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .news-item {
+            background: #2a2a2a;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .news-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 168, 107, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .news-item:hover::before {
+            transform: translateX(100%);
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col p-8">
+    <a href="{% url 'dashboard' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        Back to Dashboard
+    </a>
+    <div class="container mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-secondary">Community News</h1>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {% for news in community_news %}
+                <div class="news-item rounded-lg p-6 shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-primary">{{ news.title }}</h2>
+                    <p class="text-gray-300 mb-4">{{ news.description }}</p>
+                    <p class="text-sm text-gray-500">Posted on: {{ news.created_at|date:"F d, Y" }}</p>
+                </div>
+            {% empty %}
+                <p class="text-gray-400 col-span-full text-center">No community news at this time.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements and Community News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_panel' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Admin Panel
+        </a>
+    </div>
+    <div class="flex-grow flex flex-col items-center justify-center">
+        <h1 class="text-4xl font-bold mb-8 text-center">Announcements and Community News</h1>
+        <div class="w-full max-w-4xl space-y-8">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-secondary">Create Announcement</h2>
+                <form action="{% url 'create_announcement' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="text" name="title" placeholder="Announcement Title" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary" required>
+                    <textarea name="description" placeholder="Announcement Description" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary h-32" required></textarea>
+                    <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors duration-300 font-bold">Create Announcement</button>
+                </form>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-secondary">Create Community News</h2>
+                <form action="{% url 'create_community_news' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="text" name="title" placeholder="Community News Title" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary" required>
+                    <textarea name="description" placeholder="Community News Description" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary h-32" required></textarea>
+                    <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors duration-300 font-bold">Create Community News</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

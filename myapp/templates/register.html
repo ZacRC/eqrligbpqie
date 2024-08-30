@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More Motion - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .register-btn {
+            background-color: #00a86b;
+            position: relative;
+            overflow: hidden;
+        }
+        .register-btn:hover {
+            background-color: #00ff9d;
+        }
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(0, 168, 107, 0.1);
+            color: #00a86b;
+            padding: 10px 20px;
+            border: 2px solid #00a86b;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 168, 107, 0.2);
+        }
+
+        .back-btn:hover {
+            background-color: #00a86b;
+            color: white;
+            box-shadow: 0 0 20px rgba(0, 168, 107, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .back-btn i {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-4px);
+        }
+        .container-border {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid #00a86b;
+            border-radius: 0.5rem;
+            pointer-events: none;
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 168, 107, 0.2);
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #00a86b;
+            box-shadow: 0 0 10px rgba(0, 168, 107, 0.5);
+        }
+        .animated-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        .animated-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .step-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: rgba(0, 168, 107, 0.3);
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+        .step-dot.active, .step-dot.filled {
+            background-color: #00a86b;
+        }
+        .step-dot.active {
+            transform: scale(1.2);
+        }
+        .progress-bar {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 4px;
+            width: 100%;
+            background-color: rgba(0, 168, 107, 0.3);
+            z-index: 1;
+        }
+        .progress {
+            height: 100%;
+            background-color: #00a86b;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+        .btn {
+            background-color: #00a86b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #00ff9d;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        @keyframes glowPulse {
+            0% {
+                box-shadow: 0 0 5px rgba(0, 168, 107, 0.5), 0 0 10px rgba(0, 168, 107, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(0, 168, 107, 0.8), 0 0 30px rgba(0, 168, 107, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(0, 168, 107, 0.5), 0 0 10px rgba(0, 168, 107, 0.5);
+            }
+        }
+
+        .glow-effect {
+            animation: glowPulse 0.5s ease-in-out;
+        }
+
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+                filter: blur(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .register-card {
+            animation: cardAppear 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="text-white flex items-center justify-center min-h-screen">
+    <div id="particles-js"></div>
+    <a href="/" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+    <div class="bg-dark bg-opacity-50 p-8 rounded-lg shadow-2xl w-96 relative register-card">
+        <div class="container-border"></div>
+        <div class="animated-border"></div>
+        <h2 class="text-4xl font-bold text-center text-primary mb-8">Register</h2>
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="message bg-red-500 text-white p-2 rounded {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="step-indicator">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+        </div>
+        <form action="{% url 'register' %}" method="post" id="register-form" class="space-y-6">
+            {% csrf_token %}
+            <div class="step active" data-step="1">
+                <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <input type="text" id="username" name="username" required class="input-field w-full px-4 py-2 rounded-md text-white focus:outline-none">
+            </div>
+            <div class="step" data-step="2">
+                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                <input type="email" id="email" name="email" required class="input-field w-full px-4 py-2 rounded-md text-white focus:outline-none">
+            </div>
+            <div class="step" data-step="3">
+                <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <input type="password" id="password" name="password" required class="input-field w-full px-4 py-2 rounded-md text-white focus:outline-none">
+            </div>
+            <div class="step" data-step="4">
+                <label for="confirm_password" class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required class="input-field w-full px-4 py-2 rounded-md text-white focus:outline-none">
+            </div>
+            <div class="btn-container">
+                <button type="button" id="prev-btn" class="btn" disabled>Previous</button>
+                <button type="button" id="next-btn" class="btn">Next</button>
+                <button type="submit" id="submit-btn" class="btn" style="display: none;">Register</button>
+            </div>
+        </form>
+        <p class="text-center mt-4">
+            Already have an account? <a href="/login" class="text-primary hover:underline">Login</a>
+        </p>
+    </div>
+
+    <script>
+        // Input field animation
+        const inputFields = document.querySelectorAll('.input-field');
+        inputFields.forEach(field => {
+            field.addEventListener('focus', () => {
+                gsap.to(field, {
+                    duration: 0.3,
+                    scale: 1.05,
+                    ease: "power2.out"
+                });
+            });
+            field.addEventListener('blur', () => {
+                gsap.to(field, {
+                    duration: 0.3,
+                    scale: 1,
+                    ease: "power2.out"
+                });
+            });
+        });
+
+        // Animated border
+        anime({
+            targets: '.animated-border::before',
+            borderColor: ['#00a86b', '#00ff9d'],
+            easing: 'linear',
+            duration: 3000,
+            direction: 'alternate',
+            loop: true
+        });
+
+        // Add animation for the container border
+        anime({
+            targets: '.container-border',
+            borderColor: ['#00a86b', '#00ff9d'],
+            easing: 'linear',
+            duration: 3000,
+            direction: 'alternate',
+            loop: true
+        });
+
+        // Stepper form logic
+        const form = document.getElementById('register-form');
+        const steps = form.querySelectorAll('.step');
+        const stepDots = document.querySelectorAll('.step-dot');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        let currentStep = 0;
+
+        function showStep(stepIndex) {
+            steps.forEach((step, index) => {
+                step.classList.toggle('active', index === stepIndex);
+                stepDots[index].classList.toggle('active', index === stepIndex);
+                stepDots[index].classList.toggle('filled', index < stepIndex);
+            });
+            prevBtn.disabled = stepIndex === 0;
+            if (stepIndex === steps.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+
+            // Update progress bar
+            const progress = document.getElementById('progress');
+            const progressPercentage = (stepIndex / (steps.length - 1)) * 100;
+            progress.style.width = `${progressPercentage}%`;
+
+            // Focus on the input field of the current step
+            const currentInput = steps[stepIndex].querySelector('input');
+            if (currentInput) {
+                currentInput.focus();
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+
+        async function validateStep(stepIndex) {
+            const input = steps[stepIndex].querySelector('input');
+            const value = input.value.trim();
+
+            switch (stepIndex) {
+                case 0: // Username
+                    if (value.length < 3) {
+                        showError('Username must be at least 3 characters long');
+                        return false;
+                    }
+                    const usernameAvailable = await checkUsernameAvailability(value);
+                    if (!usernameAvailable) {
+                        showError('Username is already taken');
+                        return false;
+                    }
+                    break;
+                case 1: // Email
+                    if (!isValidEmail(value)) {
+                        showError('Please enter a valid email address');
+                        return false;
+                    }
+                    const emailAvailable = await checkEmailAvailability(value);
+                    if (!emailAvailable) {
+                        showError('Email is already registered');
+                        return false;
+                    }
+                    break;
+                case 2: // Password
+                    if (value.length < 8) {
+                        showError('Password must be at least 8 characters long');
+                        return false;
+                    }
+                    break;
+                case 3: // Confirm Password
+                    const password = document.getElementById('password').value;
+                    if (value !== password) {
+                        showError('Passwords do not match');
+                        // Clear both password fields
+                        document.getElementById('password').value = '';
+                        document.getElementById('confirm_password').value = '';
+                        // Go back to the password step
+                        currentStep = 2;
+                        showStep(currentStep);
+                        return false;
+                    }
+                    break;
+            }
+            return true;
+        }
+
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        async function checkUsernameAvailability(username) {
+            try {
+                const response = await fetch('/check_username/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                const data = await response.json();
+                return data.available;
+            } catch (error) {
+                console.error('Error checking username availability:', error);
+                return false;
+            }
+        }
+
+        async function checkEmailAvailability(email) {
+            // Implement this function to check email availability via AJAX
+            // Return true if available, false if taken
+            return true; // Placeholder
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message bg-red-500 text-white p-2 rounded mt-2';
+            errorDiv.textContent = message;
+            const currentStepElement = steps[currentStep];
+            const existingError = currentStepElement.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            currentStepElement.appendChild(errorDiv);
+        }
+
+        async function simulateNextClick() {
+            const isValid = await validateStep(currentStep);
+            if (isValid) {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                    
+                    // Add glow effect
+                    const container = document.querySelector('.bg-dark');
+                    container.classList.add('glow-effect');
+                    
+                    // Remove glow effect after animation completes
+                    setTimeout(() => {
+                        container.classList.remove('glow-effect');
+                    }, 500);
+                }
+            }
+        }
+
+        // Event listener for Enter key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission
+                if (currentStep === steps.length - 1) {
+                    // If on the last step, trigger form submission
+                    submitBtn.click();
+                } else {
+                    // Otherwise, go to the next step
+                    simulateNextClick();
+                }
+            }
+        });
+
+        // Add this event listener for the submit button
+        submitBtn.addEventListener('click', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+            const isValid = await validateStep(currentStep);
+            if (isValid) {
+                // If the last step is valid, submit the form
+                form.submit();
+            }
+        });
+
+        // Keep the existing event listener for the next button
+        nextBtn.addEventListener('click', simulateNextClick);
+
+        showStep(currentStep);
+
+        // Particle snow effect
+        particlesJS("particles-js", {
+            particles: {
+                number: {
+                    value: 50,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: "#00a86b"
+                },
+                shape: {
+                    type: "circle",
+                    stroke: {
+                        width: 0,
+                        color: "#000000"
+                    },
+                    polygon: {
+                        nb_sides: 5
+                    }
+                },
+                opacity: {
+                    value: 0.3,
+                    random: true,
+                    anim: {
+                        enable: false,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: {
+                        enable: false,
+                        speed: 40,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: false
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "bottom",
+                    random: false,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 600,
+                        rotateY: 1200
+                    }
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: {
+                        enable: false
+                    },
+                    onclick: {
+                        enable: false
+                    },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        // Add this function to get the CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

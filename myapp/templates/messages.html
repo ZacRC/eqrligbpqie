@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+            color: #e0e0e0;
+        }
+        .message-container {
+            background: rgba(42, 42, 42, 0.9);
+            border: 1px solid rgba(0, 168, 107, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .message-item:hover {
+            background: rgba(0, 168, 107, 0.1);
+        }
+        .active-message {
+            background: rgba(0, 168, 107, 0.2);
+        }
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 168, 107, 0.2);
+        }
+        .typing-indicator {
+            display: inline-block;
+            padding: 10px;
+            background-color: rgba(0, 168, 107, 0.1);
+            border-radius: 20px;
+        }
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            float: left;
+            margin: 0 1px;
+            background-color: #00a86b;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: typing 1s infinite alternate;
+        }
+        .typing-indicator span:nth-of-type(2) { animation-delay: 0.33s; }
+        .typing-indicator span:nth-of-type(3) { animation-delay: 0.66s; }
+        @keyframes typing {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-5px); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-dark p-4 flex justify-between items-center border-b border-primary">
+        <h1 class="text-2xl font-bold text-primary">Messages</h1>
+        <a href="{% url 'dashboard' %}" class="btn bg-primary text-dark px-4 py-2 rounded-full">Back to Dashboard</a>
+    </header>
+
+    <main class="flex-grow flex">
+        <!-- Connected Users List -->
+        <section class="w-1/4 message-container overflow-y-auto">
+            <div class="p-4 border-b border-primary">
+                <h2 class="text-xl font-semibold">Connections</h2>
+            </div>
+            <div id="userList" class="user-list">
+                {% for user in connected_users %}
+                    <div class="user-item p-4 border-b border-gray-700 cursor-pointer" data-user-id="{{ user.id }}">
+                        <span class="font-semibold">{{ user.username }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Message Content -->
+        <section class="w-3/4 message-container flex flex-col">
+            <div id="messageHeader" class="p-4 border-b border-primary">
+                <h2 class="text-xl font-semibold">Select a user to start messaging</h2>
+            </div>
+            <div id="messageContent" class="flex-grow overflow-y-auto p-4">
+                <!-- Messages will be dynamically added here -->
+            </div>
+            <div class="p-4 border-t border-primary">
+                <form id="messageForm" class="flex items-center bg-dark rounded-full">
+                    <input type="text" id="messageInput" placeholder="Type a message..." class="flex-grow bg-transparent p-3 focus:outline-none">
+                    <button type="submit" class="btn bg-primary text-dark p-3 rounded-full"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const userList = document.getElementById('userList');
+        const messageHeader = document.getElementById('messageHeader');
+        const messageContent = document.getElementById('messageContent');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        let currentReceiverId = null;
+        let chatSocket = null;
+
+        userList.addEventListener('click', (e) => {
+            const userItem = e.target.closest('.user-item');
+            if (userItem) {
+                const userId = userItem.dataset.userId;
+                currentReceiverId = userId;
+                loadMessages(userId);
+                messageHeader.innerHTML = `<h2 class="text-xl font-semibold">${userItem.textContent.trim()}</h2>`;
+                connectWebSocket(userId);
+            }
+        });
+
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (currentReceiverId && messageInput.value.trim()) {
+                sendMessage(currentReceiverId, messageInput.value.trim());
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    'type': 'typing',
+                    'user_id': '{{ request.user.id }}' 
+                }));
+            }
+        });
+
+        function connectWebSocket(userId) {
+            if (chatSocket) {
+                chatSocket.close();
+            }
+
+            const roomName = [userId, '{{ request.user.id }}'].sort().join('_');
+            const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomName}/`);
+
+            chatSocket.onopen = function(e) {
+                console.log('WebSocket connection established');
+            };
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === 'chat_message') {
+                    const message = {
+                        content: data.message,
+                        is_sender: data.sender_id === '{{ request.user.id }}',
+                        timestamp: new Date().toISOString()
+                    };
+                    messageContent.innerHTML += createMessageElement(message);
+                    messageContent.scrollTop = messageContent.scrollHeight;
+                } else if (data.type === 'typing') {
+                    if (data.user_id !== '{{ request.user.id }}') {
+                        showTypingIndicator();
+                    }
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                console.error('WebSocket closed unexpectedly');
+            };
+
+            chatSocket.onerror = function(e) {
+                console.error('WebSocket error:', e);
+            };
+        }
+
+        function sendMessage(receiverId, content) {
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    'type': 'chat_message',
+                    'message': content,
+                    'sender_id': '{{ request.user.id }}',
+                    'receiver_id': receiverId
+                }));
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            messageContent.appendChild(typingIndicator);
+            setTimeout(() => typingIndicator.remove(), 3000);
+        }
+
+        function loadMessages(userId) {
+            axios.get(`/messages/${userId}/`)
+                .then(response => {
+                    const messages = response.data.messages;
+                    messageContent.innerHTML = messages.map(msg => createMessageElement(msg)).join('');
+                    messageContent.scrollTop = messageContent.scrollHeight;
+                })
+                .catch(error => console.error('Error loading messages:', error));
+        }
+
+        function createMessageElement(message) {
+            const alignClass = message.is_sender ? 'text-right' : 'text-left';
+            const bgClass = message.is_sender ? 'bg-primary text-dark' : 'bg-dark';
+            return `
+                <div class="mb-4 ${alignClass}">
+                    <p class="text-gray-400 mb-1">${new Date(message.timestamp).toLocaleString()}</p>
+                    <p class="${bgClass} p-3 rounded-lg inline-block">${message.content}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

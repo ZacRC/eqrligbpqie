@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .user-card {
+            background: #2a2a2a;
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_panel' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Admin Panel
+        </a>
+    </div>
+    <div class="container mx-auto mt-16">
+        <h1 class="text-4xl font-bold mb-8 text-center text-primary">User Control Panel</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for user in users %}
+                <div class="user-card p-6 rounded-lg">
+                    <h2 class="text-2xl font-bold mb-4">{{ user.username }}</h2>
+                    <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+                    <p class="mb-2"><strong>Join Date:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+                    <p class="mb-4"><strong>Connections:</strong> {{ user.connections.count }}</p>
+                    <div class="flex space-x-2">
+                        <button onclick="showUserDetails('{{ user.id }}')" class="bg-primary text-white px-4 py-2 rounded-full text-sm">Details</button>
+                        <button onclick="editUser('{{ user.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm">Edit</button>
+                        <button onclick="deleteUser('{{ user.id }}')" class="bg-red-500 text-white px-4 py-2 rounded-full text-sm">Delete</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-dark p-8 rounded-lg max-w-2xl w-full">
+            <h2 id="userDetailsTitle" class="text-2xl font-bold mb-4"></h2>
+            <div id="userDetailsContent"></div>
+            <button onclick="closeModal('userDetailsModal')" class="mt-4 bg-primary text-white px-4 py-2 rounded-full">Close</button>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-dark p-8 rounded-lg max-w-2xl w-full">
+            <h2 class="text-2xl font-bold mb-4">Edit User</h2>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId" name="userId">
+                <div class="mb-4">
+                    <label for="editUsername" class="block mb-2">Username</label>
+                    <input type="text" id="editUsername" name="username" class="w-full bg-gray-700 text-white p-2 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="editEmail" class="block mb-2">Email</label>
+                    <input type="email" id="editEmail" name="email" class="w-full bg-gray-700 text-white p-2 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="editPassword" class="block mb-2">New Password (leave blank to keep current)</label>
+                    <input type="password" id="editPassword" name="password" class="w-full bg-gray-700 text-white p-2 rounded">
+                </div>
+                <button type="submit" class="bg-primary text-white px-4 py-2 rounded-full">Save Changes</button>
+                <button type="button" onclick="closeModal('editUserModal')" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-full">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showUserDetails(userId) {
+            fetch(`/api/user/${userId}/details/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('userDetailsTitle').textContent = `Details for ${data.username}`;
+                    let content = `
+                        <p><strong>Email:</strong> ${data.email}</p>
+                        <p><strong>Join Date:</strong> ${data.date_joined}</p>
+                        <p><strong>Last Login:</strong> ${data.last_login}</p>
+                        <p><strong>Connections:</strong> ${data.connections}</p>
+                        <h3 class="text-xl font-bold mt-4 mb-2">Forum Posts</h3>
+                        <ul class="list-disc pl-5">
+                            ${data.forum_posts.map(post => `<li>${post.title}</li>`).join('')}
+                        </ul>
+                        <h3 class="text-xl font-bold mt-4 mb-2">Forum Replies</h3>
+                        <ul class="list-disc pl-5">
+                            ${data.forum_replies.map(reply => `<li>${reply.content.substring(0, 50)}...</li>`).join('')}
+                        </ul>
+                    `;
+                    document.getElementById('userDetailsContent').innerHTML = content;
+                    document.getElementById('userDetailsModal').classList.remove('hidden');
+                    document.getElementById('userDetailsModal').classList.add('flex');
+                });
+        }
+
+        function editUser(userId) {
+            fetch(`/api/user/${userId}/details/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('editUserId').value = userId;
+                    document.getElementById('editUsername').value = data.username;
+                    document.getElementById('editEmail').value = data.email;
+                    document.getElementById('editUserModal').classList.remove('hidden');
+                    document.getElementById('editUserModal').classList.add('flex');
+                });
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                fetch(`/api/user/${userId}/delete/`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            alert('Error deleting user');
+                        }
+                    });
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.getElementById(modalId).classList.remove('flex');
+        }
+
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(`/api/user/${formData.get('userId')}/edit/`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    closeModal('editUserModal');
+                    location.reload();
+                } else {
+                    alert('Error updating user');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

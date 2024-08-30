@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .content-section {
+            background: rgba(42, 42, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ambient-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(0, 255, 157, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_panel' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Admin
+        </a>
+    </div>
+
+    <div class="container mx-auto mt-16">
+        <h1 class="text-4xl font-bold mb-8 text-center text-primary">Marketplace Admin</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Single Listing Creation -->
+            <div class="content-section rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg">
+                <div class="ambient-light"></div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-secondary">Create Single Listing</h2>
+                    <form method="post" action="{% url 'create_admin_listing' %}">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label for="user" class="block mb-2">User</label>
+                                <select name="user" id="user" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                                    {% for user in users %}
+                                        <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="title" class="block mb-2">Title</label>
+                                <input type="text" name="title" id="title" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label for="description" class="block mb-2">Description</label>
+                                <textarea name="description" id="description" required class="w-full bg-gray-700 text-white rounded px-3 py-2"></textarea>
+                            </div>
+                            <div>
+                                <label for="platform" class="block mb-2">Platform</label>
+                                <select name="platform" id="platform" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                                    <option value="youtube">YouTube</option>
+                                    <option value="tiktok">TikTok</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="followers" class="block mb-2">Followers</label>
+                                <input type="number" name="followers" id="followers" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label for="niche" class="block mb-2">Niche</label>
+                                <input type="text" name="niche" id="niche" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label for="price" class="block mb-2">Price</label>
+                                <input type="number" name="price" id="price" step="0.01" required class="w-full bg-gray-700 text-white rounded px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block mb-2">Additional Options</label>
+                                <div class="space-y-2">
+                                    <div>
+                                        <input type="checkbox" name="tiktok_shop" id="tiktok_shop" class="mr-2">
+                                        <label for="tiktok_shop">TikTok Shop</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" name="creative_fund" id="creative_fund" class="mr-2">
+                                        <label for="creative_fund">Creative Fund</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" name="youtube_monetization" id="youtube_monetization" class="mr-2">
+                                        <label for="youtube_monetization">YouTube Monetization</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="mt-4 bg-primary text-white px-4 py-2 rounded hover:bg-opacity-80 transition-colors duration-300">Create Listing</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bulk Listing Creation -->
+            <div class="content-section rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg">
+                <div class="ambient-light"></div>
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-secondary">Bulk Create Listings</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <label for="bulk_count" class="mr-2">Number of Listings:</label>
+                            <input type="number" id="bulk_count" min="1" max="100" value="1" class="bg-gray-700 text-white rounded px-3 py-2 w-24">
+                            <button id="generate_listings" class="ml-4 bg-primary text-white px-4 py-2 rounded hover:bg-opacity-80 transition-colors duration-300">Generate</button>
+                        </div>
+                        <div id="bulk_listings_container" class="space-y-4 max-h-96 overflow-y-auto pr-4"></div>
+                        <button id="bulk_submit" class="mt-4 bg-secondary text-dark px-4 py-2 rounded hover:bg-opacity-80 transition-colors duration-300 hidden w-full">List All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg mt-8">
+        <div class="ambient-light"></div>
+        <div class="p-6">
+            <h2 class="text-2xl font-bold mb-4 text-secondary">Pending Locked Escrow Listings</h2>
+            <div id="pending_listings_container" class="space-y-4">
+                {% for listing in pending_listings %}
+                    <div class="bg-gray-700 p-4 rounded-lg" id="listing-{{ listing.id }}">
+                        <h3 class="text-xl font-bold">{{ listing.title }}</h3>
+                        <p>{{ listing.description }}</p>
+                        <p>Escrow Details: {{ listing.escrow_details }}</p>
+                        <div class="mt-4">
+                            <textarea id="admin_confirmation_{{ listing.id }}" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2" placeholder="Enter admin confirmation"></textarea>
+                            <button onclick="approveListing({{ listing.id }})" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-80 transition-colors duration-300">Approve Listing</button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No pending locked escrow listings.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const users = [
+            {% for user in users %}
+                { id: {{ user.id }}, username: "{{ user.username }}" },
+            {% endfor %}
+        ];
+
+        const niches = ['Gaming', 'Beauty', 'Tech', 'Fitness', 'Cooking', 'Travel', 'Fashion', 'Education', 'Music', 'Art'];
+
+        function getRandomUser() {
+            return users[Math.floor(Math.random() * users.length)];
+        }
+
+        function getRandomNiche() {
+            return niches[Math.floor(Math.random() * niches.length)];
+        }
+
+        function getRandomTitle(platform) {
+            const adjectives = ['Amazing', 'Popular', 'Growing', 'Trending', 'Viral'];
+            const noun = platform === 'youtube' ? 'YouTube Channel' : 'TikTok Account';
+            return `${adjectives[Math.floor(Math.random() * adjectives.length)]} ${getRandomNiche()} ${noun}`;
+        }
+
+        function getRandomDescription(platform, niche) {
+            return `This is a ${platform === 'youtube' ? 'YouTube channel' : 'TikTok account'} focused on ${niche} content. It has a growing audience and great potential for further expansion.`;
+        }
+
+        document.getElementById('generate_listings').addEventListener('click', function() {
+            const count = parseInt(document.getElementById('bulk_count').value);
+            const container = document.getElementById('bulk_listings_container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const card = createRandomListingCard(i);
+                container.appendChild(card);
+            }
+            
+            document.getElementById('bulk_submit').classList.remove('hidden');
+        });
+
+        document.getElementById('bulk_submit').addEventListener('click', function() {
+            const listings = [];
+            const cards = document.querySelectorAll('.listing-card');
+            cards.forEach(card => {
+                listings.push({
+                    user_id: card.querySelector('[name="user"]').value,
+                    title: card.querySelector('[name="title"]').value,
+                    description: card.querySelector('[name="description"]').value,
+                    platform: card.querySelector('[name="platform"]').value,
+                    followers: card.querySelector('[name="followers"]').value,
+                    niche: card.querySelector('[name="niche"]').value,
+                    price: card.querySelector('[name="price"]').value,
+                    tiktok_shop: card.querySelector('[name="tiktok_shop"]').checked,
+                    creative_fund: card.querySelector('[name="creative_fund"]').checked,
+                    youtube_monetization: card.querySelector('[name="youtube_monetization"]').checked
+                });
+            });
+
+            fetch('{% url "create_bulk_listings" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ listings: listings })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bulk listings created successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error creating bulk listings. Please try again.');
+                }
+            });
+        });
+
+        function createRandomListingCard(index) {
+            const card = document.createElement('div');
+            card.className = 'listing-card bg-gray-700 p-4 rounded-lg';
+            
+            const platform = Math.random() < 0.5 ? 'youtube' : 'tiktok';
+            const niche = getRandomNiche();
+            const randomUser = getRandomUser();
+
+            card.innerHTML = `
+                <h3 class="text-xl font-bold mb-2">Listing ${index + 1}</h3>
+                <select name="user" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                    ${users.map(user => `<option value="${user.id}" ${user.id === randomUser.id ? 'selected' : ''}>${user.username}</option>`).join('')}
+                </select>
+                <input type="text" name="title" value="${getRandomTitle(platform)}" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                <textarea name="description" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">${getRandomDescription(platform, niche)}</textarea>
+                <select name="platform" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                    <option value="youtube" ${platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+                    <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                </select>
+                <input type="number" name="followers" value="${Math.floor(Math.random() * 1000000)}" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                <input type="text" name="niche" value="${niche}" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                <input type="number" name="price" value="${(Math.random() * 9990 + 10).toFixed(2)}" step="0.01" class="w-full bg-gray-600 text-white rounded px-3 py-2 mb-2">
+                <div>
+                    <input type="checkbox" name="tiktok_shop" id="tiktok_shop_${index}" ${Math.random() < 0.5 ? 'checked' : ''}>
+                    <label for="tiktok_shop_${index}">TikTok Shop</label>
+                </div>
+                <div>
+                    <input type="checkbox" name="creative_fund" id="creative_fund_${index}" ${Math.random() < 0.5 ? 'checked' : ''}>
+                    <label for="creative_fund_${index}">Creative Fund</label>
+                </div>
+                <div>
+                    <input type="checkbox" name="youtube_monetization" id="youtube_monetization_${index}" ${Math.random() < 0.5 ? 'checked' : ''}>
+                    <label for="youtube_monetization_${index}">YouTube Monetization</label>
+                </div>
+            `;
+            return card;
+        }
+
+        function approveListing(listingId) {
+            const adminConfirmation = document.getElementById(`admin_confirmation_${listingId}`).value;
+            
+            fetch(`/approve-listing/${listingId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `admin_confirmation=${encodeURIComponent(adminConfirmation)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Listing approved successfully');
+                    document.getElementById(`listing-${listingId}`).remove();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .leaderboard {
+            background: #2a2a2a;
+            box-shadow: 0 0 30px rgba(0, 168, 107, 0.2);
+        }
+        .leaderboard:hover {
+            box-shadow: 0 0 40px rgba(0, 168, 107, 0.3);
+        }
+        .leaderboard-header {
+            background: #3a3a3a;
+            border-bottom: 2px solid #00a86b;
+        }
+        .leaderboard-row {
+            transition: all 0.3s ease;
+        }
+        .leaderboard-row:hover {
+            background: rgba(0, 168, 107, 0.1);
+        }
+        .ambient-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 168, 107, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .leaderboard:hover .ambient-light {
+            opacity: 1;
+        }
+        .dashboard-item {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 168, 107, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .dashboard-item:hover::before {
+            transform: translateX(100%);
+        }
+        .dashboard-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+        .dashboard-item i {
+            color: #00a86b;
+            transition: all 0.3s ease;
+        }
+        .dashboard-item:hover i {
+            transform: scale(1.2);
+            color: #00ff9d;
+        }
+        .dashboard-item span {
+            transition: all 0.3s ease;
+        }
+        .dashboard-item:hover span {
+            color: #00ff9d;
+        }
+        .profile-button {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 168, 107, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .profile-button:hover::before {
+            transform: translateX(100%);
+        }
+        .profile-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+        .profile-button i {
+            color: #00a86b;
+            transition: all 0.3s ease;
+        }
+        .profile-button:hover i {
+            transform: scale(1.2);
+            color: #00ff9d;
+        }
+        .profile-button span {
+            transition: all 0.3s ease;
+        }
+        .profile-button:hover span {
+            color: #00ff9d;
+        }
+
+        .selector {
+            background: #3a3a3a;
+            border-radius: 25px;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .selector-option {
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .selector-option.active {
+            background: #00a86b;
+            color: #0a0a0a;
+        }
+
+        .content-container {
+            position: relative;
+            height: 500px; /* Adjust as needed */
+        }
+
+        .content-section {
+            display: none;
+            background: #2a2a2a;
+            box-shadow: 0 0 30px rgba(0, 168, 107, 0.2);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #00a86b;
+            border-radius: 1rem;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            background: #3a3a3a;
+            border-bottom: 2px solid #00a86b;
+            padding: 1rem;
+        }
+
+        .section-content {
+            padding: 1rem;
+        }
+
+        .news-item {
+            background: #3a3a3a;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .news-item:hover {
+            background: rgba(0, 168, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #notificationBall {
+            transition: all 0.3s ease;
+        }
+        #notificationBall:hover {
+            transform: scale(1.1);
+        }
+        #notificationDropdown {
+            z-index: 10;
+        }
+
+        #popupNotification {
+            fixed bottom-4 right-4 bg-dark text-white p-4 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300 ease-in-out z-50
+        }
+
+        #popupNotification {
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes scaleUp {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+                filter: blur(2px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .animate-scale-up {
+            animation: scaleUp 0.3s ease-out forwards;
+            opacity: 0;
+        }
+
+        .content-section,
+        .dashboard-item,
+        .profile-button,
+        #notificationBall,
+        .selector,
+        .logout-button {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8 flex items-center space-x-4">
+        <div class="relative">
+            <div id="notificationBall" class="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center cursor-pointer">
+                <span id="notificationCount" class="text-white font-bold">0</span>
+            </div>
+            <div id="notificationDropdown" class="hidden absolute left-0 mt-2 w-64 bg-dark rounded-lg shadow-lg p-4 z-50">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-primary font-bold">Notifications</h3>
+                    <button id="clearNotifications" class="text-xs text-primary hover:text-secondary">Clear All</button>
+                </div>
+                <ul id="notificationList" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Notifications will be added here dynamically -->
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="absolute top-8 right-8">
+        <a href="{% url 'messages' %}" class="btn bg-dark text-primary px-4 py-2 rounded-full border border-primary mr-2 relative group">
+            <i class="fas fa-envelope"></i>
+            <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-primary text-dark px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Messages</span>
+        </a>
+        <a href="{% url 'logout' %}" class="bg-secondary text-dark px-8 py-3 rounded-full text-xl font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Logout
+        </a>
+    </div>
+
+    <div class="flex-grow flex items-center justify-center">
+        <div class="grid grid-cols-2 gap-12 w-full max-w-6xl">
+            <div class="col-span-1">
+                <div class="selector bg-dark rounded-full p-1 flex justify-between mb-6">
+                    <div class="selector-option active text-center py-2 px-4 rounded-full transition-all duration-300" data-target="leaderboard">Leaderboard</div>
+                    <div class="selector-option text-center py-2 px-4 rounded-full transition-all duration-300" data-target="announcements">Announcements</div>
+                    <div class="selector-option text-center py-2 px-4 rounded-full transition-all duration-300" data-target="community-news">Community News</div>
+                </div>
+                
+                <div class="content-container">
+                    <div id="leaderboard" class="content-section active leaderboard rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg">
+                        <div class="ambient-light"></div>
+                        <div class="leaderboard-header p-6 flex items-center justify-between bg-gradient-to-r from-primary to-secondary">
+                            <h2 class="text-3xl font-bold text-dark">TOP REPUTATION</h2>
+                            <div class="flex items-center">
+                                <span class="text-sm text-dark mr-2 font-semibold">Community Leaders</span>
+                                <i class="fas fa-trophy text-dark text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <table class="w-full">
+                                <tbody id="leaderboardBody">
+                                    {% for user in top_users %}
+                                        <tr class="leaderboard-row border-b border-gray-700 hover:bg-opacity-10 hover:bg-primary transition-all duration-300">
+                                            <td class="py-4 w-1/12 text-center text-2xl font-bold text-primary">{{ forloop.counter }}</td>
+                                            <td class="py-4 w-7/12"><i class="fas fa-user-circle mr-2 text-primary"></i>{{ user.username }}</td>
+                                            <td class="py-4 w-4/12 text-right"><i class="fas fa-star text-primary mr-2"></i>{{ user.reputation }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="announcements" class="content-section rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg">
+                        <div class="ambient-light"></div>
+                        <div class="section-header p-6 flex items-center justify-between bg-gradient-to-r from-primary to-secondary relative">
+                            <h2 class="text-3xl font-bold text-dark">Announcements</h2>
+                            <div class="flex items-center relative z-10">
+                                <i class="fas fa-bullhorn text-dark text-2xl mr-4"></i>
+                                <a href="{% url 'announcements' %}" class="bg-dark text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300">View All</a>
+                            </div>
+                        </div>
+                        <div class="section-content flex-grow p-6 space-y-6">
+                            {% for announcement in announcements|slice:":2" %}
+                                <div class="news-item bg-opacity-10 bg-primary rounded-xl p-6 transition-all duration-300 hover:bg-opacity-20">
+                                    <h3 class="text-xl font-semibold text-secondary mb-2">{{ announcement.title }}</h3>
+                                    <p class="text-gray-300">{{ announcement.description }}</p>
+                                </div>
+                            {% empty %}
+                                <p class="text-gray-400">No announcements at this time.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div id="community-news" class="content-section rounded-2xl overflow-hidden flex flex-col relative bg-dark shadow-lg mt-8">
+                        <div class="ambient-light"></div>
+                        <div class="section-header p-6 flex items-center justify-between bg-gradient-to-r from-primary to-secondary relative">
+                            <h2 class="text-3xl font-bold text-dark">Community News</h2>
+                            <div class="flex items-center relative z-10">
+                                <i class="fas fa-users text-dark text-2xl mr-4"></i>
+                                <a href="{% url 'community_news' %}" class="bg-dark text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300">View All</a>
+                            </div>
+                        </div>
+                        <div class="section-content flex-grow p-6 space-y-6">
+                            {% for news in community_news|slice:":2" %}
+                                <div class="news-item bg-opacity-10 bg-primary rounded-xl p-6 transition-all duration-300 hover:bg-opacity-20">
+                                    <h3 class="text-xl font-semibold text-secondary mb-2">{{ news.title }}</h3>
+                                    <p class="text-gray-300">{{ news.description }}</p>
+                                </div>
+                            {% empty %}
+                                <p class="text-gray-400">No community news at this time.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-1 flex flex-col justify-center space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="{% url 'learning_center' %}" class="dashboard-item block p-6 rounded-lg text-center">
+                        <i class="fas fa-graduation-cap text-5xl mb-4"></i>
+                        <span class="text-xl font-bold block">Learning Center</span>
+                    </a>
+                    <a href="{% url 'forum' %}" class="dashboard-item block p-6 rounded-lg text-center">
+                        <i class="fas fa-comments text-5xl mb-4"></i>
+                        <span class="text-xl font-bold block">Forum</span>
+                    </a>
+                    <a href="{% url 'marketplace' %}" class="dashboard-item block p-6 rounded-lg text-center">
+                        <i class="fas fa-store text-5xl mb-4"></i>
+                        <span class="text-xl font-bold block">Market Place</span>
+                    </a>
+                    <a href="{% url 'tools_page' %}" class="dashboard-item block p-6 rounded-lg text-center">
+                        <i class="fas fa-tools text-5xl mb-4"></i>
+                        <span class="text-xl font-bold block">Tools</span>
+                    </a>
+                </div>
+                <a href="{% url 'user_profile' user.id %}" class="profile-button block px-6 py-4 rounded-lg text-center">
+                    <i class="fas fa-user-circle text-4xl mb-2"></i>
+                    <span class="text-2xl font-bold block">Your Profile</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="popupNotification" class="fixed bottom-4 right-4 bg-dark text-white p-4 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300 ease-in-out z-50">
+        <p id="popupMessage" class="mb-2 font-semibold"></p>
+        <button id="viewNowBtn" class="bg-primary text-dark px-4 py-2 rounded-full text-sm w-full">View Now</button>
+    </div>
+
+    {% if user.is_staff %}
+        <div class="fixed bottom-8 left-8">
+            <a href="{% url 'admin_panel' %}" class="bg-red-500 text-white px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+                Admin Panel
+            </a>
+        </div>
+    {% endif %}
+
+    <script>
+        // Selector functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectorOptions = document.querySelectorAll('.selector-option');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            function showSection(sectionId) {
+                contentSections.forEach(section => {
+                    if (section.id === sectionId) {
+                        section.style.display = 'block';
+                        section.classList.add('active');
+                    } else {
+                        section.style.display = 'none';
+                        section.classList.remove('active');
+                    }
+                });
+            }
+
+            selectorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+
+                    // Update active state for selector options
+                    selectorOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show the selected section
+                    showSection(target);
+                });
+            });
+
+            // Show leaderboard by default
+            showSection('leaderboard');
+
+            // Add animation to elements
+            function animateElements() {
+                const elements = document.querySelectorAll('.content-section, .dashboard-item, .profile-button, #notificationBall, .selector, .logout-button');
+                elements.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.classList.add('animate-scale-up');
+                    }, index * 50); // Stagger the animations
+                });
+            }
+
+            // Call the animation function after a short delay
+            setTimeout(animateElements, 50);
+        });
+
+        // Debug: Check if all content sections are present
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentSections = document.querySelectorAll('.content-section');
+            contentSections.forEach(section => {
+                console.log(`Section ${section.id} found:`, section);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationBall = document.getElementById('notificationBall');
+            const notificationCount = document.getElementById('notificationCount');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            const notificationList = document.getElementById('notificationList');
+
+            function updateNotificationCount(count) {
+                notificationCount.textContent = count;
+                notificationBall.classList.toggle('bg-red-500', count > 0);
+                notificationBall.classList.toggle('bg-gray-500', count === 0);
+                notificationBall.style.display = 'flex'; // Always keep the notification ball visible
+            }
+
+            function addNotification(notification) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="${notification.is_read ? 'text-gray-400' : 'text-white'}">${notification.sender}: ${notification.message}</span>
+                        <button class="text-xs text-primary mark-read-btn" data-id="${notification.id}">Mark as Read</button>
+                    </div>
+                `;
+                li.className = 'text-white cursor-pointer hover:bg-gray-700 p-2 rounded';
+                li.onclick = function(event) {
+                    if (!event.target.classList.contains('mark-read-btn')) {
+                        window.location.href = "{% url 'user_profile' user.id %}";
+                    }
+                };
+                notificationList.appendChild(li);
+            }
+
+            function fetchNotifications() {
+                fetch('/api/notifications/')
+                    .then(response => response.json())
+                    .then(data => {
+                        notificationList.innerHTML = '';
+                        if (data.length === 0) {
+                            const li = document.createElement('li');
+                            li.textContent = 'No notifications';
+                            li.className = 'text-gray-400 p-2';
+                            notificationList.appendChild(li);
+                        } else {
+                            data.forEach(notification => {
+                                addNotification(notification);
+                                if (!notification.is_read && notification.message.includes('sent you a connection request')) {
+                                    showPopupNotification(notification.sender, notification.sender_id, notification.id);
+                                }
+                            });
+                        }
+                        updateNotificationCount(data.filter(n => !n.is_read).length);
+                    });
+            }
+
+            notificationBall.addEventListener('click', function() {
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    fetchNotifications();
+                }
+            });
+
+            notificationList.addEventListener('click', function(event) {
+                if (event.target.classList.contains('mark-read-btn')) {
+                    const notificationId = event.target.dataset.id;
+                    fetch(`/api/notifications/${notificationId}/mark-read/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const listItem = event.target.closest('li');
+                            listItem.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">${listItem.querySelector('span').textContent}</span>
+                                </div>
+                            `;
+                            listItem.classList.remove('cursor-pointer', 'hover:bg-gray-700');
+                            listItem.onclick = null;
+                            updateNotificationCount(document.querySelectorAll('.mark-read-btn').length);
+                        }
+                    });
+                }
+            });
+
+            // Fetch notifications on page load
+            fetchNotifications();
+
+            // Fetch notifications every 30 seconds
+            setInterval(fetchNotifications, 30000);
+
+            const popupNotification = document.getElementById('popupNotification');
+            const popupMessage = document.getElementById('popupMessage');
+            const viewNowBtn = document.getElementById('viewNowBtn');
+
+            let popupTimeout;
+            let shownNotifications = new Set(JSON.parse(localStorage.getItem('shownNotifications') || '[]'));
+
+            function showPopupNotification(sender, senderId, notificationId) {
+                if (shownNotifications.has(notificationId)) return;
+
+                popupMessage.textContent = "You have received a connection request";
+                popupNotification.classList.remove('translate-y-full', 'opacity-0');
+                
+                if (popupTimeout) {
+                    clearTimeout(popupTimeout);
+                }
+                
+                popupTimeout = setTimeout(() => {
+                    hidePopupNotification();
+                }, 5000);
+
+                viewNowBtn.onclick = () => {
+                    window.location.href = `/user_profile/${senderId}/`;
+                };
+
+                shownNotifications.add(notificationId);
+                localStorage.setItem('shownNotifications', JSON.stringify(Array.from(shownNotifications)));
+            }
+
+            function hidePopupNotification() {
+                popupNotification.classList.add('translate-y-full', 'opacity-0');
+            }
+
+            const clearNotificationsBtn = document.getElementById('clearNotifications');
+
+            clearNotificationsBtn.addEventListener('click', function() {
+                fetch('/api/notifications/clear/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        notificationList.innerHTML = '';
+                        const li = document.createElement('li');
+                        li.textContent = 'No notifications';
+                        li.className = 'text-gray-400 p-2';
+                        notificationList.appendChild(li);
+                        updateNotificationCount(0);
+                        shownNotifications.clear();
+                        localStorage.setItem('shownNotifications', JSON.stringify([]));
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

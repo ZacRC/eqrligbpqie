@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .tool-item {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            box-shadow: 10px 10px 20px #0c0c0c, -10px -10px 20px #282828;
+            transition: all 0.3s ease;
+            width: 360px;
+            height: 200px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+        }
+        .tool-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 15px 15px 30px #0c0c0c, -15px -15px 30px #282828;
+        }
+        .tool-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+        .tool-description {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 168, 107, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem;
+        }
+        .tool-item:hover .tool-description {
+            opacity: 1;
+        }
+        .tool-item:hover .tool-icon,
+        .tool-item:hover .tool-name,
+        .tool-item:hover .use-tool-btn {
+            opacity: 0;
+        }
+        .use-tool-btn {
+            transition: all 0.3s ease;
+        }
+        .tool-item:hover .use-tool-btn {
+            opacity: 1;
+            background-color: #00ff9d;
+            color: #0a0a0a;
+        }
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader-icon {
+            font-size: 8rem;
+            color: #00a86b;
+            margin-bottom: 2rem;
+        }
+        .loader-text {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #00a86b;
+            margin-bottom: 2rem;
+        }
+        .loader-bar {
+            width: 300px;
+            height: 6px;
+            background: #111;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .loader-progress {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #00a86b, #00ff9d);
+            transition: width 0.5s ease;
+        }
+        .content {
+            opacity: 0;
+        }
+        .featured-tools-container {
+            margin-bottom: 4rem;
+        }
+        .featured-tool {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 2px solid #00ff9d;
+            border-radius: 1rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.1);
+        }
+        .featured-tool:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 255, 157, 0.2);
+        }
+        .featured-tool::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 157, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        .featured-tool-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        .featured-tool-icon {
+            font-size: 4rem;
+            color: #00ff9d;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+        .featured-tool-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+        }
+        .featured-tool-description {
+            font-size: 1.1rem;
+            color: #cccccc;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .featured-tool-btn {
+            background-color: #00ff9d;
+            color: #0a0a0a;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-top: auto;
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+        }
+        .featured-tool-btn:hover {
+            background-color: #ffffff;
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+    <div id="loader" class="loader-wrapper">
+        <i class="fas fa-tools loader-icon"></i>
+        <div class="loader-text">Tools</div>
+        <div class="loader-bar">
+            <div id="loaderProgress" class="loader-progress"></div>
+        </div>
+    </div>
+
+    <div class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        <a href="{% url 'dashboard' %}">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <div id="content" class="content p-8">
+        <header class="mb-24 flex flex-col items-center mt-16">
+            <i class="fas fa-tools text-8xl text-primary mb-6"></i>
+            <h1 class="text-6xl font-bold text-center text-primary">Tools</h1>
+        </header>
+
+        <main class="flex-grow container mx-auto">
+            {% if featured_tools %}
+            <div class="featured-tools-container mb-16">
+                <h2 class="text-4xl font-bold mb-8 text-center text-secondary">Featured Tools</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {% for tool in featured_tools %}
+                    <div class="featured-tool">
+                        <div class="featured-tool-content flex flex-col items-center justify-center h-full">
+                            <div class="text-center">
+                                <i class="{{ tool.icon }} featured-tool-icon"></i>
+                                <h3 class="featured-tool-name">{{ tool.name }}</h3>
+                                <p class="featured-tool-description">{{ tool.description|truncatewords:30 }}</p>
+                                <a href="{% url 'tool_view' tool.id %}" class="featured-tool-btn mt-4">Use Tool</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <h2 class="text-4xl font-bold mb-8 text-center text-secondary">All Tools</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-12">
+                {% for tool in tools %}
+                <div class="tool-item rounded-2xl border-2 border-primary text-center mx-auto">
+                    <div class="tool-content">
+                        <i class="{{ tool.icon }} text-4xl mb-3 text-primary tool-icon"></i>
+                        <h3 class="text-xl font-bold mb-2 tool-name">{{ tool.name }}</h3>
+                    </div>
+                    <a href="{% url 'tool_view' tool.id %}" class="use-tool-btn bg-primary text-dark px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-80 transition-colors duration-300 z-10">Use Tool</a>
+                    <div class="tool-description text-sm font-medium">
+                        <h3 class="text-xl font-bold mb-2">{{ tool.name }}</h3>
+                        <p class="mb-4">{{ tool.description|truncatewords:20 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const loaderProgress = document.getElementById('loaderProgress');
+            const loaderIcon = document.querySelector('.loader-icon');
+
+            // Animate loader icon
+            anime({
+                targets: loaderIcon,
+                rotate: '1turn',
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                loop: true
+            });
+
+            // Simulate loading progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                loaderProgress.style.width = `${progress}%`;
+                if (progress === 100) {
+                    clearInterval(interval);
+                    // Start fading in content earlier
+                    gsap.to(content, { 
+                        opacity: 1, 
+                        duration: 0.875,
+                        delay: 0.25
+                    });
+                    // Fade out loader
+                    gsap.to(loader, {
+                        opacity: 0,
+                        duration: 0.5,
+                        delay: 0.25,
+                        onComplete: () => {
+                            loader.style.display = 'none';
+                        }
+                    });
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

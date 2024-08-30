@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .profile-section {
+            background: #1a1a1a;
+            box-shadow: 0 0 30px rgba(0, 168, 107, 0.2);
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .profile-section:hover {
+            box-shadow: 0 0 40px rgba(0, 168, 107, 0.3);
+        }
+        .edit-btn, .connect-btn {
+            background: #00a86b;
+            transition: all 0.3s ease;
+        }
+        .edit-btn:hover, .connect-btn:hover {
+            background: #00ff9d;
+            transform: translateY(-2px);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+        }
+        .tab-button.active {
+            background: #00a86b;
+            color: #0a0a0a;
+        }
+        .content-item {
+            background: #2a2a2a;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: quickFade 0.3s ease-out forwards;
+        }
+        .content-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+        .edit-profile-form {
+            display: none;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .edit-profile-form.active {
+            display: block;
+        }
+        .ambient-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 168, 107, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .profile-section:hover .ambient-light {
+            opacity: 1;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes quickFade {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <a href="{% url 'dashboard' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        Back to Dashboard
+    </a>
+
+    <div class="flex-grow container mx-auto mt-32">
+        <div class="profile-section rounded-lg overflow-hidden p-8 relative">
+            <div class="ambient-light"></div>
+            <div class="flex flex-col md:flex-row items-center space-y-8 md:space-y-0 md:space-x-12 mb-12">
+                <div class="relative">
+                    <img src="{{ profile_user.profile_picture }}" alt="Profile Picture" class="w-48 h-48 rounded-full object-cover border-4 border-primary animate-pulse">
+                    {% if user == profile_user %}
+                    <button class="absolute bottom-0 right-0 bg-primary text-dark p-3 rounded-full edit-btn" id="change-picture-btn">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-5xl font-bold mb-4">{{ profile_user.username }}</h1>
+                    <p class="text-xl text-gray-400 mb-6">{{ profile_user.bio }}</p>
+                    {% if user != profile_user %}
+                        {% if is_connected %}
+                            <button class="bg-gray-500 text-white px-6 py-3 rounded-full text-lg" disabled>Connected</button>
+                        {% elif connection_request_sent %}
+                            <button class="bg-yellow-500 text-white px-6 py-3 rounded-full text-lg" disabled>Request Sent</button>
+                        {% elif connection_request_received %}
+                            <button class="bg-green-500 text-white px-6 py-3 rounded-full text-lg accept-request-btn" data-connection-id="{{ connection_request_received.id }}">Accept Request</button>
+                            <button class="bg-red-500 text-white px-6 py-3 rounded-full text-lg reject-request-btn" data-connection-id="{{ connection_request_received.id }}">Reject Request</button>
+                        {% else %}
+                            <button class="bg-primary text-dark px-6 py-3 rounded-full text-lg connect-btn" data-user-id="{{ profile_user.id }}">Connect</button>
+                        {% endif %}
+                    {% else %}
+                    <button class="bg-primary text-dark px-6 py-3 rounded-full text-lg edit-btn" id="edit-profile-btn">
+                        Edit Profile
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user == profile_user %}
+            <div class="edit-profile-form" id="edit-profile-form">
+                <form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label for="bio" class="block text-lg font-medium text-gray-300 mb-2">Bio</label>
+                        <textarea id="bio" name="bio" rows="4" class="w-full px-4 py-3 bg-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-white">{{ user.bio }}</textarea>
+                    </div>
+                    <div>
+                        <label for="profile_picture" class="block text-lg font-medium text-gray-300 mb-2">Profile Picture</label>
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="w-full px-4 py-3 bg-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-white">
+                    </div>
+                    <button type="submit" class="bg-primary text-dark px-6 py-3 rounded-full text-lg hover:bg-opacity-80 transition-colors duration-300">Save Changes</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="mt-12">
+                <div class="flex flex-wrap justify-center md:justify-between items-center mb-8 overflow-x-auto">
+                    <div class="flex flex-wrap justify-center space-x-4 mb-4 md:mb-0">
+                        <button class="tab-button active px-6 py-3 rounded-full text-lg" data-tab="posts">Posts</button>
+                        <button class="tab-button px-6 py-3 rounded-full text-lg" data-tab="favorites">Favorited Posts</button>
+                        <button class="tab-button px-6 py-3 rounded-full text-lg" data-tab="tools">Favorited Tools</button>
+                        <button class="tab-button px-6 py-3 rounded-full text-lg" data-tab="replies">Replies</button>
+                        <button class="tab-button px-6 py-3 rounded-full text-lg relative" data-tab="connections">
+                            Connections
+                            {% if connection_requests_count > 0 %}
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                                    {{ connection_requests_count }}
+                                </span>
+                            {% endif %}
+                        </button>
+                    </div>
+                    {% if user == profile_user %}
+                    <button class="tab-button px-6 py-3 rounded-full text-lg flex items-center" data-tab="custom-presets">
+                        <i class="fas fa-lock mr-2"></i>
+                        Your Custom Tools Presets
+                        <i class="fas fa-lock ml-2"></i>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div id="posts" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for post in profile_user.forumpost_set.all %}
+                        <div class="content-item p-6 rounded-lg">
+                            <h3 class="text-2xl font-bold mb-4">{{ post.title }}</h3>
+                            <p class="text-gray-400 mb-6">{{ post.content|truncatewords:20 }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-500">{{ post.created_at|date:"M d, Y" }}</span>
+                                <a href="{% url 'post_detail' post.id %}" class="text-primary hover:text-secondary">Read More</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="favorites" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for post in profile_user.favorite_posts.all %}
+                        <div class="content-item p-6 rounded-lg">
+                            <h3 class="text-2xl font-bold mb-4">{{ post.title }}</h3>
+                            <p class="text-gray-400 mb-6">{{ post.content|truncatewords:20 }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-500">{{ post.created_at|date:"M d, Y" }}</span>
+                                <a href="#" class="text-primary hover:text-secondary">Read More</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="tools" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for tool in favorited_tools %}
+                        <div class="content-item p-6 rounded-lg text-center">
+                            <i class="{{ tool.icon }} text-6xl text-primary mb-6"></i>
+                            <h3 class="text-2xl font-bold mb-4">{{ tool.name }}</h3>
+                            <p class="text-gray-400 mb-6">{{ tool.description|truncatewords:10 }}</p>
+                            <a href="{% url 'tool_view' tool.id %}" class="text-primary hover:text-secondary text-lg">Use Tool</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="replies" class="tab-content hidden">
+                    <div class="space-y-8">
+                        {% for reply in user.forumreply_set.all %}
+                        <div class="content-item p-6 rounded-lg">
+                            <p class="text-gray-400 mb-6">{{ reply.content }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-500">{{ reply.created_at|date:"M d, Y" }}</span>
+                                <a href="#" class="text-primary hover:text-secondary">View Original Post</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="connections" class="tab-content hidden">
+                    {% if is_own_profile and connection_requests %}
+                        <div class="mb-12">
+                            <h3 class="text-3xl font-bold mb-6">Connection Requests</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {% for request in connection_requests %}
+                                    <div class="content-item p-6 rounded-lg text-center">
+                                        <img src="{{ request.from_user.profile_picture }}" alt="{{ request.from_user.username }}" class="w-32 h-32 rounded-full object-cover mx-auto mb-6">
+                                        <h3 class="text-2xl font-bold mb-4">{{ request.from_user.username }}</h3>
+                                        <a href="{% url 'user_profile' request.from_user.id %}" class="text-primary hover:text-secondary mb-4 block">View Profile</a>
+                                        <div class="flex justify-center space-x-4">
+                                            <button class="bg-green-500 text-white px-4 py-2 rounded-full accept-request-btn" data-connection-id="{{ request.id }}">Accept</button>
+                                            <button class="bg-red-500 text-white px-4 py-2 rounded-full reject-request-btn" data-connection-id="{{ request.id }}">Reject</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <h3 class="text-3xl font-bold mb-6">Your Connections</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for connection in user_connections %}
+                            {% if connection.from_user == profile_user %}
+                                {% with partner=connection.to_user %}
+                                <div class="content-item p-6 rounded-lg text-center">
+                                    <img src="{{ partner.profile_picture }}" alt="{{ partner.username }}" class="w-32 h-32 rounded-full object-cover mx-auto mb-6">
+                                    <h3 class="text-2xl font-bold mb-4">{{ partner.username }}</h3>
+                                    <a href="{% url 'user_profile' partner.id %}" class="text-primary hover:text-secondary mb-4 block">View Profile</a>
+                                    {% if user == profile_user %}
+                                    <button class="bg-primary text-dark px-4 py-2 rounded-full more-btn" data-connection-id="{{ connection.id }}">More</button>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                {% with partner=connection.from_user %}
+                                <div class="content-item p-6 rounded-lg text-center">
+                                    <img src="{{ partner.profile_picture }}" alt="{{ partner.username }}" class="w-32 h-32 rounded-full object-cover mx-auto mb-6">
+                                    <h3 class="text-2xl font-bold mb-4">{{ partner.username }}</h3>
+                                    <a href="{% url 'user_profile' partner.id %}" class="text-primary hover:text-secondary mb-4 block">View Profile</a>
+                                    {% if user == profile_user %}
+                                    <button class="bg-primary text-dark px-4 py-2 rounded-full more-btn" data-connection-id="{{ connection.id }}">More</button>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% endif %}
+                        {% empty %}
+                        <p class="col-span-3 text-center text-gray-400">No connections yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if user == profile_user %}
+                <div id="custom-presets" class="tab-content hidden">
+                    <!-- Add content for custom tool presets here -->
+                    <p class="text-center text-gray-400">Your custom tool presets will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            function showTab(tabId) {
+                tabContents.forEach(content => {
+                    if (content.id === tabId) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.getAttribute('data-tab');
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    showTab(target);
+                    setTimeout(animateContentItems, 10);
+                });
+            });
+
+            // Edit profile form toggle
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const editProfileForm = document.getElementById('edit-profile-form');
+
+            if (editProfileBtn && editProfileForm) {
+                editProfileBtn.addEventListener('click', function() {
+                    editProfileForm.classList.toggle('active');
+                });
+            }
+
+            // Change profile picture
+            const changePictureBtn = document.getElementById('change-picture-btn');
+            const profilePictureInput = document.getElementById('profile_picture');
+
+            if (changePictureBtn && profilePictureInput) {
+                changePictureBtn.addEventListener('click', function() {
+                    profilePictureInput.click();
+                });
+
+                profilePictureInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.querySelector('.profile-section img').src = e.target.result;
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+
+            // Connection functionality using event delegation
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('connect-btn')) {
+                    handleConnectButton(event.target);
+                } else if (event.target.classList.contains('accept-request-btn')) {
+                    handleAcceptButton(event.target);
+                } else if (event.target.classList.contains('reject-request-btn')) {
+                    handleRejectButton(event.target);
+                } else if (event.target.classList.contains('more-btn')) {
+                    const connectionId = event.target.getAttribute('data-connection-id');
+                    showMoreOptions(event.target, connectionId);
+                }
+            });
+
+            function handleConnectButton(button) {
+                const userId = button.getAttribute('data-user-id');
+                fetch(`/send-connection-request/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'request_sent') {
+                        button.textContent = 'Cancel Request';
+                        button.classList.remove('bg-primary');
+                        button.classList.add('bg-red-500');
+                    } else if (data.status === 'request_cancelled') {
+                        button.textContent = 'Connect';
+                        button.classList.remove('bg-red-500');
+                        button.classList.add('bg-primary');
+                    }
+                });
+            }
+
+            function handleAcceptButton(button) {
+                const connectionId = button.getAttribute('data-connection-id');
+                fetch(`/accept-connection-request/${connectionId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'request_accepted') {
+                        const requestItem = button.closest('.content-item');
+                        const connectionsContainer = document.querySelector('#connections .grid');
+                        
+                        // Create a new connection item
+                        const newConnectionItem = document.createElement('div');
+                        newConnectionItem.className = 'content-item p-6 rounded-lg text-center';
+                        newConnectionItem.innerHTML = `
+                            <img src="${requestItem.querySelector('img').src}" alt="${requestItem.querySelector('h3').textContent}" class="w-32 h-32 rounded-full object-cover mx-auto mb-6">
+                            <h3 class="text-2xl font-bold mb-4">${requestItem.querySelector('h3').textContent}</h3>
+                            <a href="${requestItem.querySelector('a').href}" class="text-primary hover:text-secondary mb-4 block">View Profile</a>
+                            <button class="bg-primary text-dark px-4 py-2 rounded-full more-btn" data-connection-id="${connectionId}">More</button>
+                        `;
+                        
+                        // Add the new connection to the connections container
+                        connectionsContainer.appendChild(newConnectionItem);
+                        updateConnectionsHeader();
+                        
+                        // Remove the "No connections yet" message if it exists
+                        const noConnectionsMessage = connectionsContainer.querySelector('p.text-gray-400');
+                        if (noConnectionsMessage) {
+                            noConnectionsMessage.remove();
+                        }
+                        
+                        // Remove the request item from the "Connection Requests" section
+                        requestItem.remove();
+                        updateConnectionRequestsCount();
+                        
+                        // If there are no more connection requests, remove the "Connection Requests" section
+                        if (connectionRequestsContainer.children.length === 0) {
+                            const connectionRequestsSection = document.querySelector('#connections .mb-12');
+                            if (connectionRequestsSection) {
+                                connectionRequestsSection.remove();
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateConnectionsHeader() {
+                const connectionsContainer = document.querySelector('#connections');
+                if (!connectionsContainer.querySelector('h3')) {
+                    const header = document.createElement('h3');
+                    header.className = 'text-3xl font-bold mb-6';
+                    header.textContent = 'Your Connections';
+                    connectionsContainer.insertBefore(header, connectionsContainer.firstChild);
+                }
+            }
+
+            function handleRejectButton(button) {
+                const connectionId = button.getAttribute('data-connection-id');
+                fetch(`/reject-connection-request/${connectionId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'request_rejected') {
+                        const requestItem = button.closest('.content-item');
+                        requestItem.remove();
+                        updateConnectionRequestsCount();
+                    }
+                });
+            }
+
+            function updateConnectionRequestsCount() {
+                const connectionsTab = document.querySelector('.tab-button[data-tab="connections"]');
+                const countSpan = connectionsTab.querySelector('span');
+                const connectionRequestsSection = document.querySelector('#connections .mb-12');
+                if (countSpan) {
+                    let count = parseInt(countSpan.textContent) - 1;
+                    if (count > 0) {
+                        countSpan.textContent = count;
+                    } else {
+                        countSpan.remove();
+                        if (connectionRequestsSection) {
+                            connectionRequestsSection.remove();
+                        }
+                    }
+                }
+            }
+
+            // More button functionality
+            function showMoreOptions(button, connectionId) {
+                const popup = document.createElement('div');
+                popup.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';
+                popup.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-4">Options</h3>
+                        <button class="bg-primary text-dark px-4 py-2 rounded-full mb-2 w-full">Direct Message</button>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded-full w-full unconnect-btn" data-connection-id="${connectionId}">Unconnect</button>
+                        <button class="mt-4 text-gray-500 cancel-btn">Cancel</button>
+                    </div>
+                `;
+
+                document.body.appendChild(popup);
+
+                popup.querySelector('.cancel-btn').addEventListener('click', () => {
+                    popup.remove();
+                });
+
+                popup.querySelector('.unconnect-btn').addEventListener('click', () => {
+                    handleUnconnect(connectionId);
+                    popup.remove();
+                });
+            }
+
+            function handleUnconnect(connectionId) {
+                fetch(`/unconnect/${connectionId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'unconnected') {
+                        const connectionItem = document.querySelector(`.more-btn[data-connection-id="${connectionId}"]`).closest('.content-item');
+                        connectionItem.remove();
+                    }
+                });
+            }
+
+            // Add animation to content items
+            function animateContentItems() {
+                const contentItems = document.querySelectorAll('.content-item');
+                contentItems.forEach((item, index) => {
+                    item.style.animationDelay = `${index * 0.05}s`;
+                });
+            }
+
+            // Call the animation function when switching tabs
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.getAttribute('data-tab');
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    showTab(target);
+                    setTimeout(animateContentItems, 10);
+                });
+            });
+
+            // Initial animation call
+            animateContentItems();
+
+            // Add pulse animation to the profile picture
+            const profilePicture = document.querySelector('.profile-section img');
+            profilePicture.classList.add('animate-pulse');
+        });
+    </script>
+</body>
+</html>

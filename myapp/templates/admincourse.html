@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Course Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 1rem;
+        }
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .icon-item:hover {
+            background-color: rgba(0, 168, 107, 0.2);
+            transform: scale(1.1);
+        }
+        .icon-item i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .icon-item span {
+            font-size: 0.7rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen p-8 flex flex-col">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_panel' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Admin Panel
+        </a>
+    </div>
+    <div class="flex-grow flex flex-col items-center justify-center mt-20">
+        <h1 class="text-4xl font-bold mb-8 text-center text-primary">Course Management</h1>
+        <div class="w-full max-w-4xl">
+            <div class="bg-gray-800 p-6 rounded-lg mb-8 shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-secondary">Add New Course</h2>
+                <form action="{% url 'add_course' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="text" name="title" placeholder="Course Title" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary" required>
+                    <textarea name="description" placeholder="Course Description" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary h-32" required></textarea>
+                    <div class="flex items-center">
+                        <input type="text" name="icon" id="icon-input" placeholder="FontAwesome Icon Class" class="w-full p-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-primary" required readonly>
+                        <button type="button" id="open-icon-gallery" class="ml-2 bg-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors duration-300">Choose Icon</button>
+                    </div>
+                    <button type="submit" class="bg-secondary text-dark px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors duration-300 font-bold">Add Course</button>
+                </form>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-secondary">Existing Courses</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-700">
+                                <th class="text-left p-3 rounded-tl-lg">Title</th>
+                                <th class="text-left p-3">Description</th>
+                                <th class="text-left p-3">Icon</th>
+                                <th class="text-left p-3 rounded-tr-lg">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            <tr class="border-b border-gray-700">
+                                <td class="p-3">{{ course.title }}</td>
+                                <td class="p-3">{{ course.description|truncatewords:10 }}</td>
+                                <td class="p-3"><i class="fas {{ course.icon }} text-2xl"></i></td>
+                                <td class="p-3">
+                                    <a href="{% url 'edit_course' course.id %}" class="text-primary hover:text-secondary mr-2">Edit</a>
+                                    <a href="{% url 'manage_lessons' course.id %}" class="text-primary hover:text-secondary mr-2">Manage Lessons</a>
+                                    <a href="{% url 'delete_course' course.id %}" class="text-red-500 hover:text-red-400" onclick="return confirm('Are you sure you want to delete this course?')">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Icon Gallery Modal -->
+    <div id="icon-gallery-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 p-6 rounded-lg w-3/4 max-h-3/4 overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4 text-secondary">Choose an Icon</h2>
+            <div id="icon-grid" class="icon-grid">
+                <!-- Icons will be dynamically added here -->
+            </div>
+            <button id="close-icon-gallery" class="mt-4 bg-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors duration-300">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const iconClasses = [
+            'fa-book', 'fa-code', 'fa-paint-brush', 'fa-music', 'fa-camera', 'fa-film',
+            'fa-globe', 'fa-rocket', 'fa-flask', 'fa-graduation-cap', 'fa-heart', 'fa-star',
+            'fa-laptop', 'fa-microphone', 'fa-palette', 'fa-atom', 'fa-dna', 'fa-brain',
+            'fa-microscope', 'fa-calculator', 'fa-chart-line', 'fa-database', 'fa-server',
+            'fa-robot', 'fa-vr-cardboard', 'fa-microchip', 'fa-keyboard', 'fa-mouse',
+            'fa-desktop', 'fa-mobile-alt', 'fa-tablet-alt', 'fa-headphones', 'fa-gamepad',
+            'fa-puzzle-piece', 'fa-chess', 'fa-dice', 'fa-football-ball', 'fa-basketball-ball',
+            'fa-baseball-ball', 'fa-volleyball-ball', 'fa-tennis-ball', 'fa-table-tennis',
+            'fa-dumbbell', 'fa-running', 'fa-bicycle', 'fa-swimmer', 'fa-skiing',
+            'fa-snowboarding', 'fa-hiking', 'fa-mountain', 'fa-tree', 'fa-leaf',
+            'fa-seedling', 'fa-fish', 'fa-dog', 'fa-cat', 'fa-horse', 'fa-paw',
+            'fa-feather', 'fa-spider', 'fa-bug', 'fa-butterfly', 'fa-frog',
+            'fa-kiwi-bird', 'fa-crow', 'fa-otter', 'fa-dragon', 'fa-hippo'
+        ];
+
+        const iconGrid = document.getElementById('icon-grid');
+        const iconInput = document.getElementById('icon-input');
+        const iconGalleryModal = document.getElementById('icon-gallery-modal');
+
+        iconClasses.forEach(iconClass => {
+            const iconElement = document.createElement('div');
+            iconElement.className = 'icon-item cursor-pointer';
+            iconElement.innerHTML = `
+                <i class="fas ${iconClass}"></i>
+                <span>${iconClass.replace('fa-', '')}</span>
+            `;
+            iconElement.addEventListener('click', () => {
+                iconInput.value = iconClass;
+                iconGalleryModal.classList.add('hidden');
+            });
+            iconGrid.appendChild(iconElement);
+        });
+
+        document.getElementById('open-icon-gallery').addEventListener('click', () => {
+            iconGalleryModal.classList.remove('hidden');
+        });
+
+        document.getElementById('close-icon-gallery').addEventListener('click', () => {
+            iconGalleryModal.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

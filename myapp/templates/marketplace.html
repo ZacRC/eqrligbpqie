@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00d68f',
+                        dark: '#0a0a0a',
+                        gray: {
+                            700: '#2a2a2a',
+                            800: '#1a1a1a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .account-card {
+            background: #1a1a1a;
+            transition: all 0.3s ease;
+        }
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 168, 107, 0.2);
+        }
+        .filter-button {
+            background: #2a2a2a;
+            transition: all 0.3s ease;
+        }
+        .filter-button:hover, .filter-button.active {
+            background: #00a86b;
+            color: #0a0a0a;
+        }
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader-icon {
+            font-size: 8rem;
+            color: #00a86b;
+            margin-bottom: 2rem;
+        }
+        .loader-text {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #00a86b;
+            margin-bottom: 2rem;
+        }
+        .loader-bar {
+            width: 300px;
+            height: 6px;
+            background: #111;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .loader-progress {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #00a86b, #00d68f);
+            transition: width 0.5s ease;
+        }
+        .content {
+            opacity: 0;
+        }
+        .filter-section {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .filter-button {
+            background: #2a2a2a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .filter-button:hover, .filter-button.active {
+            background: #00a86b;
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 168, 107, 0.2);
+        }
+        .form-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00a86b;
+            border-radius: 4px;
+            background-color: transparent;
+            display: inline-block;
+            position: relative;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .form-checkbox:checked {
+            background-color: #00a86b;
+        }
+        .form-checkbox:checked::before {
+            content: '\2714';
+            font-size: 14px;
+            color: #0a0a0a;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .form-select {
+            appearance: none;
+            background-color: #2a2a2a;
+            border: none;
+            color: #fff;
+            padding: 10px 36px 10px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300a86b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        .form-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 168, 107, 0.3);
+        }
+        .search-input {
+            background-color: #2a2a2a;
+            border: none;
+            color: #fff;
+            padding: 10px 16px 10px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            width: 100%;
+        }
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 168, 107, 0.3);
+        }
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00a86b;
+        }
+        .advanced-filters-toggle {
+            background-color: #2a2a2a;
+            color: #00a86b;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .advanced-filters-toggle:hover {
+            background-color: #00a86b;
+            color: #0a0a0a;
+        }
+        .advanced-filters {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .filter-section > div {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+
+            .filter-section > div > * {
+                margin-bottom: 10px;
+            }
+        }
+
+        .filter-section > div {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-section > div > div:first-child {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        #advancedFiltersToggle {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 1024px) {
+            .filter-section > div > div:first-child {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="loader-wrapper" id="loader">
+        <i class="fas fa-store loader-icon"></i>
+        <div class="loader-text">Marketplace</div>
+        <div class="loader-bar">
+            <div class="loader-progress" id="loaderProgress"></div>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <a href="{% url 'dashboard' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+            Back to Dashboard
+        </a>
+
+        <div class="fixed top-8 right-8 flex items-center space-x-4">
+            <button id="infoButton" class="bg-gray-700 text-primary px-3 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <a href="{% url 'create_listing' %}" class="bg-primary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+                Create Listing
+            </a>
+            <a href="{% url 'marketplace_profile' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 ml-4">
+                <i class="fas fa-user-circle mr-2"></i>Profile
+            </a>
+        </div>
+
+        <header class="mb-16 flex flex-col items-center mt-16">
+            <i class="fas fa-store text-8xl text-primary mb-6"></i>
+            <h1 class="text-6xl font-bold text-center text-primary">Account Marketplace</h1>
+        </header>
+
+        <div class="flex-grow container mx-auto">
+            <div class="filter-section mb-12">
+                <div class="flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex-grow flex flex-wrap items-center gap-6">
+                        <div class="filter-group">
+                            <button class="filter-button active bg-primary text-dark" data-filter="all">All</button>
+                            <button class="filter-button bg-gray-700" data-filter="youtube">YouTube</button>
+                            <button class="filter-button bg-gray-700" data-filter="tiktok">TikTok</button>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="monetizationEnabled" class="form-checkbox">
+                                <span class="text-sm font-medium">Monetization Enabled</span>
+                            </label>
+                        </div>
+
+                        <div class="filter-group">
+                            <select id="followerCount" class="form-select">
+                                <option value="all">Follower Count</option>
+                                <option value="0-10k">0 - 10k</option>
+                                <option value="10k-100k">10k - 100k</option>
+                                <option value="100k-1m">100k - 1M</option>
+                                <option value="1m+">1M+</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group flex-grow">
+                            <div class="relative w-full">
+                                <input type="text" id="accountSearch" placeholder="Search account names" class="search-input">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <button id="advancedFiltersToggle" class="advanced-filters-toggle">
+                            <i class="fas fa-sliders-h"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="advancedFiltersContainer" class="advanced-filters" style="display: none;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="tiktokShop" class="form-checkbox">
+                            <span class="text-sm font-medium">TikTok Shop</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="creativeFund" class="form-checkbox">
+                            <span class="text-sm font-medium">Creative Fund</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="youtubeMonetization" class="form-checkbox">
+                            <span class="text-sm font-medium">YouTube Monetization</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for listing in listings %}
+                <div class="account-card rounded-lg overflow-hidden bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div class="p-6 flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-primary">{{ listing.title }}</h2>
+                            <i class="fab fa-{% if listing.platform == 'youtube' %}youtube text-red-600{% else %}tiktok text-pink-500{% endif %} text-3xl"></i>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-gray-300">
+                                <i class="fas fa-users mr-2 text-secondary"></i>
+                                {% if listing.platform == 'youtube' %}Subscribers{% else %}Followers{% endif %}: {{ listing.followers }}
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-gray-300">
+                                <i class="fas fa-tag mr-2 text-secondary"></i>
+                                Niche: {{ listing.niche }}
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            {% if listing.platform == 'youtube' %}
+                                <p class="text-gray-300">
+                                    <i class="fas fa-dollar-sign mr-2 {% if listing.youtube_monetization %}text-primary{% else %}text-red-500{% endif %}"></i>
+                                    YouTube Monetization: {% if listing.youtube_monetization %}Enabled{% else %}Disabled{% endif %}
+                                </p>
+                            {% else %}
+                                <p class="text-gray-300">
+                                    <i class="fas fa-shopping-cart mr-2 {% if listing.tiktok_shop %}text-primary{% else %}text-red-500{% endif %}"></i>
+                                    TikTok Shop: {% if listing.tiktok_shop %}Enabled{% else %}Disabled{% endif %}
+                                </p>
+                                <p class="text-gray-300 mt-2">
+                                    <i class="fas fa-paint-brush mr-2 {% if listing.creative_fund %}text-primary{% else %}text-red-500{% endif %}"></i>
+                                    Creative Fund: {% if listing.creative_fund %}Enabled{% else %}Disabled{% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="mt-auto">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-3xl font-bold text-secondary">${{ listing.price }}</span>
+                                <a href="{% url 'listing_detail' listing.id %}" class="bg-primary text-dark px-4 py-2 rounded-full font-semibold hover:bg-opacity-80 transition-colors duration-300">View Details</a>
+                            </div>
+                            <div class="flex justify-between items-center text-sm text-gray-400">
+                                <p>Listed by: {{ listing.user.username }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add the modal for the info popup -->
+    <div id="infoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-700 rounded-lg p-8 max-w-4xl w-full mx-4 relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-3xl font-bold text-secondary mb-6">Marketplace Process</h3>
+            <div class="flex flex-col space-y-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">1</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Create Listing</h4>
+                        <p class="text-gray-300">List your YouTube or TikTok account and provide detailed information.</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">2</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Choose Escrow Type</h4>
+                        <div class="mt-2 flex space-x-4">
+                            <div class="bg-gray-800 p-3 rounded-lg">
+                                <h5 class="text-secondary font-semibold">Locked Escrow</h5>
+                                <ul class="text-gray-300 text-sm mt-2 list-disc list-inside">
+                                    <li>Account credentials changed immediately</li>
+                                    <li>No access unless removed from escrow</li>
+                                    <li>Instant payout when sold</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-800 p-3 rounded-lg">
+                                <h5 class="text-secondary font-semibold">Normal Escrow</h5>
+                                <ul class="text-gray-300 text-sm mt-2 list-disc list-inside">
+                                    <li>Keep account access until sold</li>
+                                    <li>Credentials changed after sale</li>
+                                    <li>Payout within a few hours after sale</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">3</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Verification</h4>
+                        <p class="text-gray-300">Our team verifies your account details and listing information.</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">4</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Listing Goes Live</h4>
+                        <p class="text-gray-300">Your verified listing appears on the marketplace for buyers to see.</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">5</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Buyer Purchase</h4>
+                        <p class="text-gray-300">A buyer purchases your listing, and their payment is held in escrow.</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">6</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Account Transfer</h4>
+                        <p class="text-gray-300">
+                            <span class="text-secondary font-semibold">Locked Escrow:</span> Credentials already changed, transferred to buyer.<br>
+                            <span class="text-secondary font-semibold">Normal Escrow:</span> You change credentials and provide them to the buyer.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-dark text-2xl font-bold">7</div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-white">Payout</h4>
+                        <p class="text-gray-300">
+                            <span class="text-secondary font-semibold">Locked Escrow:</span> Instant payout to your account.<br>
+                            <span class="text-secondary font-semibold">Normal Escrow:</span> Payout within a few hours after successful transfer.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const loaderProgress = document.getElementById('loaderProgress');
+            const loaderIcon = document.querySelector('.loader-icon');
+
+            // Animate loader icon
+            anime({
+                targets: loaderIcon,
+                rotate: '1turn',
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                loop: true
+            });
+
+            // Simulate loading progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                loaderProgress.style.width = `${progress}%`;
+                if (progress === 100) {
+                    clearInterval(interval);
+                    // Start fading in content earlier
+                    gsap.to(content, { 
+                        opacity: 1, 
+                        duration: 0.875, // 1.75 times slower than before
+                        delay: 0.25 // Start fading in earlier
+                    });
+                    // Fade out loader
+                    gsap.to(loader, {
+                        opacity: 0,
+                        duration: 0.5,
+                        delay: 0.25, // Delay to match content fade-in start
+                        onComplete: () => {
+                            loader.style.display = 'none';
+                        }
+                    });
+                }
+            }, 100);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-button');
+            const monetizationEnabledCheckbox = document.getElementById('monetizationEnabled');
+            const followerCountSelect = document.getElementById('followerCount');
+            const advancedFiltersToggle = document.getElementById('advancedFiltersToggle');
+            const advancedFiltersContainer = document.getElementById('advancedFiltersContainer');
+            const accountSearchInput = document.getElementById('accountSearch');
+            const accountCards = document.querySelectorAll('.account-card');
+
+            const advancedFilters = [
+                document.getElementById('tiktokShop'),
+                document.getElementById('creativeFund'),
+                document.getElementById('youtubeMonetization')
+            ];
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('bg-primary', 'text-dark', 'active');
+                        btn.classList.add('bg-gray-700', 'text-white');
+                    });
+                    this.classList.remove('bg-gray-700', 'text-white');
+                    this.classList.add('bg-primary', 'text-dark', 'active');
+                    applyFilters();
+                });
+            });
+
+            let advancedFiltersOpen = false;
+            advancedFiltersToggle.addEventListener('click', function() {
+                advancedFiltersOpen = !advancedFiltersOpen;
+                advancedFiltersContainer.style.display = advancedFiltersOpen ? 'block' : 'none';
+            });
+
+            monetizationEnabledCheckbox.addEventListener('change', applyFilters);
+            followerCountSelect.addEventListener('change', applyFilters);
+            advancedFilters.forEach(filter => filter.addEventListener('change', applyFilters));
+            accountSearchInput.addEventListener('input', applyFilters);
+
+            function applyFilters() {
+                const selectedPlatform = document.querySelector('.filter-button.active').dataset.filter;
+                const monetizationEnabled = monetizationEnabledCheckbox.checked;
+                const followerCount = followerCountSelect.value;
+                const searchQuery = accountSearchInput.value.toLowerCase();
+
+                const activeAdvancedFilters = advancedFilters
+                    .filter(filter => filter.checked)
+                    .map(filter => filter.id);
+
+                accountCards.forEach(card => {
+                    const platform = card.querySelector('.fab').classList.contains('fa-youtube') ? 'youtube' : 'tiktok';
+                    const followers = parseInt(card.querySelector('.fa-users').nextSibling.textContent.match(/\d+/)[0]);
+                    const title = card.querySelector('h2').textContent.toLowerCase();
+                    const tiktokShop = card.textContent.includes('TikTok Shop: Enabled');
+                    const creativeFund = card.textContent.includes('Creative Fund: Enabled');
+                    const youtubeMonetization = card.textContent.includes('YouTube Monetization: Enabled');
+
+                    const platformMatch = selectedPlatform === 'all' || platform === selectedPlatform;
+                    const followerMatch = followerCountFilter(followers, followerCount);
+                    const searchMatch = title.includes(searchQuery);
+                    const monetizationMatch = !monetizationEnabled || (monetizationEnabled && (tiktokShop || creativeFund || youtubeMonetization));
+                    const advancedFilterMatch = activeAdvancedFilters.length === 0 || 
+                        (activeAdvancedFilters.includes('tiktokShop') && tiktokShop) ||
+                        (activeAdvancedFilters.includes('creativeFund') && creativeFund) ||
+                        (activeAdvancedFilters.includes('youtubeMonetization') && youtubeMonetization);
+
+                    if (platformMatch && followerMatch && searchMatch && monetizationMatch && advancedFilterMatch) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            function followerCountFilter(followers, range) {
+                switch (range) {
+                    case '0-10k': return followers < 10000;
+                    case '10k-100k': return followers >= 10000 && followers < 100000;
+                    case '100k-1m': return followers >= 100000 && followers < 1000000;
+                    case '1m+': return followers >= 1000000;
+                    default: return true;
+                }
+            }
+
+            // Initial filter application
+            applyFilters();
+
+            // Add event listeners for the info modal
+            const infoButton = document.getElementById('infoButton');
+            const infoModal = document.getElementById('infoModal');
+            const closeModal = document.getElementById('closeModal');
+
+            infoButton.addEventListener('click', function() {
+                infoModal.classList.remove('hidden');
+                gsap.from(infoModal.querySelector('div'), {
+                    y: -50,
+                    opacity: 0,
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            });
+
+            closeModal.addEventListener('click', function() {
+                gsap.to(infoModal.querySelector('div'), {
+                    y: -50,
+                    opacity: 0,
+                    duration: 0.3,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        infoModal.classList.add('hidden');
+                    }
+                });
+            });
+
+            infoModal.addEventListener('click', function(e) {
+                if (e.target === infoModal) {
+                    gsap.to(infoModal.querySelector('div'), {
+                        y: -50,
+                        opacity: 0,
+                        duration: 0.3,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            infoModal.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

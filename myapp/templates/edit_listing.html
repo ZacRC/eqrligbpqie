@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Listing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00d68f',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <a href="{% url 'marketplace_profile' %}" class="fixed top-8 left-8 bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+        Back to Profile
+    </a>
+
+    <div class="container mx-auto mt-16 max-w-2xl">
+        <h1 class="text-5xl font-bold text-center text-primary mb-12">Edit Listing</h1>
+        
+        <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-lg font-medium text-gray-300 mb-2">Title</label>
+                    {{ form.title }}
+                </div>
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-lg font-medium text-gray-300 mb-2">Description</label>
+                    {{ form.description }}
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-primary text-white px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+                        Update Listing
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

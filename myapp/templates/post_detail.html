@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - Forum Post</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .post-card, .reply-card {
+            background: #2a2a2a;
+            box-shadow: 0 0 30px rgba(0, 168, 107, 0.2);
+            transition: all 0.5s ease;
+        }
+        .post-card:hover, .reply-card:hover {
+            box-shadow: 0 0 40px rgba(0, 168, 107, 0.3);
+        }
+        .center-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col p-8">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'forum' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300 shadow-lg">
+            Back to Forum
+        </a>
+    </div>
+
+    <div class="flex-grow flex items-center justify-center mt-16">
+        <div class="w-full max-w-4xl">
+            <div class="post-card rounded-lg overflow-hidden p-8 mb-8">
+                <div class="flex justify-between items-start mb-4">
+                    <h1 class="text-4xl font-bold text-primary">{{ post.title }}</h1>
+                    <div class="flex items-center">
+                        <button id="favoriteBtn" class="text-3xl favorite-btn mr-4" data-post-id="{{ post.id }}">
+                            <i class="fas fa-heart {% if post in user.favorite_posts.all %}text-red-500{% else %}text-gray-500{% endif %}"></i>
+                        </button>
+                        {% if user == post.author %}
+                            <button class="edit-post-btn bg-primary text-dark px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300 mr-2">Edit</button>
+                            <button class="delete-post-btn bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300">Delete</button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-lg mb-8 leading-relaxed post-content">{{ post.content|linebreaks }}</div>
+                <div class="flex justify-between items-center text-sm text-gray-400">
+                    <span><i class="fas fa-comment mr-1"></i> {{ replies.count }} replies</span>
+                    <span><i class="fas fa-heart mr-1"></i> {{ post.favorited_by.count }} favorites</span>
+                    <span>Posted by <a href="{% url 'user_profile' post.author.id %}" class="text-primary hover:underline">{{ post.author.username }}</a> {{ post.created_at|timesince }} ago</span>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold text-primary mb-4">Replies</h2>
+            {% for reply in replies %}
+                <div class="reply-card rounded-lg p-6 mb-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-lg reply-content">{{ reply.content }}</p>
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-400 mr-2"><i class="fas fa-heart mr-1"></i> {{ reply.favorited_by.count }}</span>
+                            <button class="favorite-reply-btn text-xl mr-2" data-reply-id="{{ reply.id }}">
+                                <i class="fas fa-heart {% if reply in user.favorite_replies.all %}text-red-500{% else %}text-gray-500{% endif %}"></i>
+                            </button>
+                            {% if user == reply.author %}
+                                <button class="edit-reply-btn bg-primary text-dark px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300 mr-2" data-reply-id="{{ reply.id }}">Edit</button>
+                                <button class="delete-reply-btn bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300" data-reply-id="{{ reply.id }}">Delete</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400">Reply by <a href="{% url 'user_profile' reply.author.id %}" class="text-primary hover:underline">{{ reply.author.username }}</a> {{ reply.created_at|timesince }} ago</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button class="reply-to-reply-btn text-sm text-primary" data-reply-id="{{ reply.id }}">Reply</button>
+                    </div>
+                    <div class="reply-to-reply-form hidden mt-4" id="replyForm{{ reply.id }}">
+                        <form method="post" action="{% url 'reply_to_reply' reply.id %}" class="space-y-4">
+                            {% csrf_token %}
+                            <textarea name="content" class="w-full p-2 rounded-lg bg-gray-700 text-white" rows="3" required></textarea>
+                            <button type="submit" class="bg-primary text-dark px-4 py-2 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300">Post Reply</button>
+                        </form>
+                    </div>
+                    <div class="nested-replies ml-8 mt-4">
+                        {% for nested_reply in reply.replies.all %}
+                            <div class="nested-reply-card rounded-lg p-4 mb-2 bg-gray-800">
+                                <p class="text-sm nested-reply-content">{{ nested_reply.content }}</p>
+                                <p class="text-xs text-gray-400 mt-1">Reply by <a href="{% url 'user_profile' nested_reply.author.id %}" class="text-primary hover:underline">{{ nested_reply.author.username }}</a> {{ nested_reply.created_at|timesince }} ago</p>
+                                {% if user == nested_reply.author %}
+                                    <div class="mt-2">
+                                        <button class="edit-reply-btn bg-primary text-dark px-2 py-1 rounded-full text-xs font-bold hover:bg-opacity-80 transition-colors duration-300 mr-2" data-reply-id="{{ nested_reply.id }}">Edit</button>
+                                        <button class="delete-reply-btn bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold hover:bg-opacity-80 transition-colors duration-300" data-reply-id="{{ nested_reply.id }}">Delete</button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-400">No replies yet. Be the first to reply!</p>
+            {% endfor %}
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <textarea name="content" cols="40" rows="10" class="w-full p-2 rounded-lg bg-gray-700 text-white" required id="id_content"></textarea>
+                <div class="flex justify-center">
+                    <button type="submit" class="bg-primary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">Post Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const favoriteBtn = document.getElementById('favoriteBtn');
+            const favoriteReplyBtns = document.querySelectorAll('.favorite-reply-btn');
+            const replyToReplyBtns = document.querySelectorAll('.reply-to-reply-btn');
+            const quoteReplyBtns = document.querySelectorAll('.quote-reply-btn');
+            const mainReplyForm = document.querySelector('form:last-of-type');
+            const mainReplyTextarea = mainReplyForm.querySelector('textarea[name="content"]');
+
+            favoriteBtn.addEventListener('click', function() {
+                const postId = this.getAttribute('data-post-id');
+                fetch(`/favorite-post/${postId}/`, { 
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'favorited') {
+                            this.querySelector('i').classList.add('text-red-500');
+                            this.querySelector('i').classList.remove('text-gray-500');
+                        } else {
+                            this.querySelector('i').classList.add('text-gray-500');
+                            this.querySelector('i').classList.remove('text-red-500');
+                        }
+                    });
+            });
+
+            favoriteReplyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const replyId = this.getAttribute('data-reply-id');
+                    fetch(`/favorite-reply/${replyId}/`, { 
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'favorited') {
+                                this.querySelector('i').classList.add('text-red-500');
+                                this.querySelector('i').classList.remove('text-gray-500');
+                            } else {
+                                this.querySelector('i').classList.add('text-gray-500');
+                                this.querySelector('i').classList.remove('text-red-500');
+                            }
+                        });
+                });
+            });
+
+            replyToReplyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const replyId = this.getAttribute('data-reply-id');
+                    const replyForm = document.getElementById(`replyForm${replyId}`);
+                    replyForm.classList.toggle('hidden');
+                });
+            });
+
+            quoteReplyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const replyContent = this.getAttribute('data-reply-content');
+                    const replyAuthor = this.getAttribute('data-reply-author');
+                    const replyDate = this.getAttribute('data-reply-date');
+                    
+                    const quotedContent = `> ${replyAuthor} wrote ${replyDate} ago:\n> ${replyContent.replace(/\n/g, '\n> ')}\n\n`;
+                    
+                    if (mainReplyTextarea) {
+                        mainReplyTextarea.value = quotedContent;
+                        mainReplyTextarea.focus();
+                        mainReplyTextarea.setSelectionRange(mainReplyTextarea.value.length, mainReplyTextarea.value.length);
+                        window.scrollTo(0, document.body.scrollHeight);
+                    } else {
+                        console.error('Main reply textarea not found');
+                    }
+                });
+            });
+        });
+
+        const editPostBtn = document.querySelector('.edit-post-btn');
+        const deletePostBtn = document.querySelector('.delete-post-btn');
+        const editReplyBtns = document.querySelectorAll('.edit-reply-btn');
+        const deleteReplyBtns = document.querySelectorAll('.delete-reply-btn');
+
+        if (editPostBtn) {
+            editPostBtn.addEventListener('click', function() {
+                const postContent = document.querySelector('.post-content');
+                const currentContent = postContent.innerText;
+                postContent.innerHTML = `<textarea class="w-full p-2 rounded-lg bg-gray-700 text-white" rows="5">${currentContent}</textarea>
+                    <button class="save-post-btn bg-primary text-dark px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300 mt-2">Save</button>`;
+                
+                const savePostBtn = document.querySelector('.save-post-btn');
+                savePostBtn.addEventListener('click', function() {
+                    const newContent = postContent.querySelector('textarea').value;
+                    fetch(`/edit-post/{{ post.id }}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content: newContent }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            postContent.innerHTML = newContent;
+                        }
+                    });
+                });
+            });
+        }
+
+        if (deletePostBtn) {
+            deletePostBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this post?')) {
+                    fetch(`/delete-post/{{ post.id }}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.href = '{% url "forum" %}';
+                        }
+                    });
+                }
+            });
+        }
+
+        editReplyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const replyId = this.getAttribute('data-reply-id');
+                const replyContent = this.closest('.reply-card').querySelector('.reply-content');
+                const currentContent = replyContent.innerText;
+                replyContent.innerHTML = `<textarea class="w-full p-2 rounded-lg bg-gray-700 text-white" rows="3">${currentContent}</textarea>
+                    <button class="save-reply-btn bg-primary text-dark px-3 py-1 rounded-full text-sm font-bold hover:bg-opacity-80 transition-colors duration-300 mt-2" data-reply-id="${replyId}">Save</button>`;
+                
+                const saveReplyBtn = replyContent.querySelector('.save-reply-btn');
+                saveReplyBtn.addEventListener('click', function() {
+                    const newContent = replyContent.querySelector('textarea').value;
+                    fetch(`/edit-reply/${replyId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content: newContent }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            replyContent.innerHTML = newContent;
+                        }
+                    });
+                });
+            });
+        });
+
+        deleteReplyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const replyId = this.getAttribute('data-reply-id');
+                if (confirm('Are you sure you want to delete this reply?')) {
+                    fetch(`/delete-reply/${replyId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.closest('.reply-card').remove();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

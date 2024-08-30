@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Lessons for {{ course.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00a86b',
+                        secondary: '#00ff9d',
+                        dark: '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(0, 168, 107, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 168, 107, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .lesson-container {
+            border: 1px solid rgba(0, 168, 107, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            background: rgba(10, 10, 10, 0.6);
+            box-shadow: 0 4px 6px rgba(0, 168, 107, 0.1);
+        }
+        .lesson-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #00a86b, transparent);
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen p-8 flex flex-col items-center">
+    <div class="absolute top-8 left-8">
+        <a href="{% url 'admin_courses' %}" class="bg-secondary text-dark px-6 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors duration-300">
+            Back to Courses
+        </a>
+    </div>
+    <h1 class="text-4xl font-bold mb-8 text-center">Manage Lessons for {{ course.title }}</h1>
+    <div class="w-full max-w-4xl">
+        <div id="lesson-template" class="lesson-container mb-8">
+            <form action="{% url 'add_lesson' course.id %}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                <input type="text" name="title" placeholder="Lesson Title" class="w-full p-2 bg-gray-700 rounded text-3xl font-bold mb-4 text-primary">
+                <div class="lesson-divider"></div>
+                <div id="mini-lessons">
+                    <div class="mini-lesson">
+                        <input type="url" name="video_urls[]" placeholder="YouTube Video URL" class="w-full p-2 bg-gray-700 rounded mb-2">
+                        <input type="file" name="video_files[]" accept="video/*" class="w-full p-2 bg-gray-700 rounded mb-2">
+                        <input type="text" name="mini_titles[]" placeholder="Mini Lesson Title" class="w-full p-2 bg-gray-700 rounded mb-2">
+                        <textarea name="descriptions[]" placeholder="Mini Lesson Description" class="w-full p-2 bg-gray-700 rounded mb-2"></textarea>
+                    </div>
+                </div>
+                <button type="button" id="add-mini-lesson" class="bg-secondary text-dark px-4 py-2 rounded hover:bg-opacity-80 mb-4">Add Mini Lesson</button>
+                <input type="number" name="order" placeholder="Lesson Order" class="w-full p-2 bg-gray-700 rounded mb-4">
+                <button type="submit" class="bg-primary text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-opacity-80 transition-colors duration-300">Add Lesson</button>
+            </form>
+        </div>
+        
+        <h2 class="text-2xl font-bold mb-4">Existing Lessons</h2>
+        {% for lesson in course.lessons.all %}
+        <div id="lesson-{{ lesson.id }}" class="lesson-container mb-8">
+            <h2 class="text-3xl font-bold mb-4 text-primary">{{ lesson.title }}</h2>
+            <div class="lesson-divider"></div>
+            {% for mini_lesson in lesson.mini_lessons.all %}
+            <div class="mini-lesson mb-4">
+                <div class="aspect-w-16 aspect-h-9 mb-2">
+                    {% if mini_lesson.video_url %}
+                        <iframe src="{{ mini_lesson.video_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
+                    {% elif mini_lesson.video_file %}
+                        <video src="{{ mini_lesson.video_file.url }}" controls class="w-full h-full"></video>
+                    {% endif %}
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-secondary">{{ mini_lesson.title }}</h3>
+                <div class="prose prose-invert max-w-none mb-4 text-gray-300">
+                    {{ mini_lesson.description|safe }}
+                </div>
+            </div>
+            {% endfor %}
+            <div class="flex justify-end">
+                <a href="{% url 'edit_lesson' course.id lesson.id %}" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-80 mr-2">Edit</a>
+                <a href="{% url 'delete_lesson' course.id lesson.id %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-opacity-80">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <script>
+        document.getElementById('add-mini-lesson').addEventListener('click', function() {
+            const miniLessons = document.getElementById('mini-lessons');
+            const newMiniLesson = document.createElement('div');
+            newMiniLesson.className = 'mini-lesson';
+            newMiniLesson.innerHTML = `
+                <input type="url" name="video_urls[]" placeholder="YouTube Video URL" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <input type="file" name="video_files[]" accept="video/*" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <input type="text" name="mini_titles[]" placeholder="Mini Lesson Title" class="w-full p-2 bg-gray-700 rounded mb-2">
+                <textarea name="descriptions[]" placeholder="Mini Lesson Description" class="w-full p-2 bg-gray-700 rounded mb-2"></textarea>
+            `;
+            miniLessons.appendChild(newMiniLesson);
+        });
+    </script>
+</body>
+</html>
