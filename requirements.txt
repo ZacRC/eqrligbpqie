@@ -2,9 +2,6 @@ Django==3.2.10
 djangorestframework
 django-widget-tweaks
 psycopg2-binary
-google-cloud-storage
 gunicorn
 channels
-django-storages[google]
-google-auth
 django-model-utils==4.3.1
