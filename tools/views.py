@@ -54,3 +54,4 @@ def tools_page(request):
     featured_tools = Tool.objects.filter(is_featured=True)
     tools = Tool.objects.filter(is_featured=False)
     return render(request, 'tools/tools.html', {'featured_tools': featured_tools, 'tools': tools})
+

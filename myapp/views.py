@@ -41,6 +41,42 @@ import random
 from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.utils import timezone
+import boto3
+import json
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.conf import settings
+
+def viddown(request):
+    return render(request, 'viddown.html')
+
+@require_POST
+def download_video(request):
+    video_url = json.loads(request.body).get('video_url')
+    
+    if not video_url:
+        return JsonResponse({'error': 'Video URL is required'}, status=400)
+
+    try:
+        # Invoke AWS Lambda function
+        lambda_client = boto3.client('lambda', region_name='us-east-2')
+        response = lambda_client.invoke(
+            FunctionName='youtube-downloader',
+            InvocationType='RequestResponse',
+            Payload=json.dumps({'video_url': video_url})
+        )
+        
+        result = json.loads(response['Payload'].read())
+        
+        if 'errorMessage' in result:
+            return JsonResponse({'error': result['errorMessage']}, status=500)
+        
+        download_url = result['download_url']
+        return JsonResponse({'download_url': download_url})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 def announcements(request):
     announcements = Announcement.objects.all().order_by('-created_at')

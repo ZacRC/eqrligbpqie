@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from myapp import views
 from django.contrib import admin
 from django.urls import path, include
@@ -83,7 +83,7 @@ urlpatterns = [
     path('tool/<int:tool_id>/', tool_views.tool_view, name='tool_view'),
     path('tools/', tool_views.tools_page, name='tools_page'),
     path('edit-tool/<int:tool_id>/', tool_views.edit_tool, name='edit_tool'),
-    path('delete-tool/<int:tool_id>/', tool_views.delete_tool, name='delete_tool'),
+    path('delete-tool/<int:tool_id>/', tool_views.delete_tool, name='delete_tool')
 ]
 
 from django.conf import settings

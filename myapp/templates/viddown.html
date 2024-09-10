@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">YouTube Video Downloader</h1>
+    <form id="download-form" class="mb-8">
+        <div class="mb-4">
+            <label for="video-url" class="block text-sm font-medium text-gray-700">YouTube Video URL</label>
+            <input type="url" id="video-url" name="video-url" required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+        </div>
+        <button type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Download Video
+        </button>
+    </form>
+    <div id="download-status" class="hidden mb-4 p-4 rounded-md"></div>
+    <div id="download-link" class="hidden">
+        <a href="#" id="download-button"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Download Video
+        </a>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('download-form');
+    const statusDiv = document.getElementById('download-status');
+    const downloadLinkDiv = document.getElementById('download-link');
+    const downloadButton = document.getElementById('download-button');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const videoUrl = document.getElementById('video-url').value;
+        
+        statusDiv.textContent = 'Processing video...';
+        statusDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+        statusDiv.classList.add('bg-yellow-100', 'text-yellow-700');
+        downloadLinkDiv.classList.add('hidden');
+
+        try {
+            const response = await fetch('/api/download-video/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ video_url: videoUrl }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                statusDiv.textContent = 'Video processed successfully!';
+                statusDiv.classList.remove('bg-yellow-100', 'text-yellow-700');
+                statusDiv.classList.add('bg-green-100', 'text-green-700');
+                downloadButton.href = data.download_url;
+                downloadLinkDiv.classList.remove('hidden');
+            } else {
+                throw new Error(data.error || 'An error occurred while processing the video.');
+            }
+        } catch (error) {
+            statusDiv.textContent = error.message;
+            statusDiv.classList.remove('bg-yellow-100', 'text-yellow-700');
+            statusDiv.classList.add('bg-red-100', 'text-red-700');
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

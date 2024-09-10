@@ -74,6 +74,8 @@ urlpatterns = [
     path('approve-listing/<int:listing_id>/', views.approve_listing, name='approve_listing'),
     path('marketplace/profile/', views.marketplace_profile, name='marketplace_profile'),
     path('marketplace/edit/<int:listing_id>/', views.edit_listing, name='edit_listing'),
+    path('viddown/', views.viddown, name='viddown'),
+    path('api/download-video/', views.download_video, name='download_video'),
 ]
 
 from django.conf import settings
